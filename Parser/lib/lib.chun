@@ -1,0 +1,19 @@
+lib/
+    二进制库文件夹
+    htmlparser.so
+        html解析库
+        Function:html的解析及最终格式的存储
+
+    Thesaurus.so
+        词库操作库
+        Function: 建立，存储，初始化词库的操作
+        默认中间会将词库存储到../Data/中
+
+    Indexer.so
+        索引库 
+        Function:建立索引，存储，初始化索引查询的操作
+
+    Communitor.so
+        分布式操作库
+        Functionn:分布式计算及查询库
+

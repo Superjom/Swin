@@ -1,0 +1,86 @@
+#############################################
+#    标准API及文档说明 
+#    Date:       2012-02-22 
+#    Project:    Thesaurus.pyx 
+#    @Author:    Chunwei
+#############################################
+
+Function:
+    根据文件建立文件和初始化文件的一些操作
+API:
+    class:
+        Create_Thesaurus:
+            建立词库及存储
+        Init_thesaurus:
+            根据词库文件初始化词库及查询返回任一词在词库中编号(wordid) 
+______________________________________________________________________________
+#创建索引表数据结构
+cdef struct HI:
+    long left
+    long right
+
+
+#Theasuerus.pyx
+cdef class Create_Thesaurus:
+    '''
+    建立词库
+    '''
+    cdef int  Insert(self,int i,char *u) :
+        '''
+        在元素插入到序号为i的位置
+        '''
+        pass
+
+    def show(self):
+        '''
+        展示内容
+        '''
+        pass
+
+    cdef int find(self,char *word):
+        '''
+        查找返回位置
+        并将不存在的记录插入到原队列合适位置
+        '''
+        pass
+
+    cdef char *get_str(self):
+        '''
+        取得以空格分割的词库字符串
+        用于词库的储存和显示
+        '''
+        pass
+
+    cdef void save(self):
+        '''
+        将词库以字符串方式保存
+        '''
+        pass
+
+
+
+cdef class Init_thesaurus:
+    '''
+    从文件中初始化词库
+    初始化词库
+    '''
+    cdef void show_hash(self) :
+        '''
+        展示所有记录的hash值
+        '''
+        pass
+
+    cdef create_hash_index(self) :
+        '''
+        产生hash 索引
+        '''
+        pass
+
+    def find(self,word):
+        '''
+        查取一词在词库中的编号wid 
+        exist:      return i
+        none:       return -1
+        '''
+        pass
+
