@@ -1,0 +1,2 @@
+strr="hello" 
+strr.

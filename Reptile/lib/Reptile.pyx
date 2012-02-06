@@ -14,12 +14,12 @@ from Queue import Queue
 #导入配置文件
 import config
 #导入核心库
-import communitor
+#import communitor
 import urlist
 #导入IO库
 from judger import Judger
 from saver import Saver
-form urlist cimport Urlist
+from urlist cimport Urlist
 
 '''
 Project:	Reptile.py
@@ -35,38 +35,38 @@ Function:	核心库，动态下载网页
 '''
 
 class reptile(threading.Thread):
-	'''
-	子线程爬虫具体实现
-	'''
-	def __init__(self,Gurlist,Rqueue,Name,Flcok\
-			Saver,Judger):
-		'''
-		init 
-		Gurlist:	本平台公共的urlist(自己实现的urlist)
-		Name:		线程的名称
-		Flcok:		锁
-		Rqueue:		运行时共享库
-		---------------------------------------
-		Saver:		IO 存储库
+    '''
+    子线程爬虫具体实现
+    '''
+    def __init__(self,Gurlist,Rqueue,Name,Flcok,\
+            Saver,Judger):
+        '''
+        init 
+        Gurlist:	本平台公共的urlist(自己实现的urlist)
+        Name:		线程的名称
+        Flcok:		锁
+        Rqueue:		运行时共享库
+        ---------------------------------------
+        Saver:		IO 存储库
 
         运行方式：
             urlist:         储存所有有效的url（判断一个url是否已经被下载）
             Rqueue:         储存所有有效但是未下载的url
             self.raw_url    储存本网页新得到的href 
                             href均为原生态的url 需要有一些处理之后才能够放入Rqueue
-		'''
-		threading.Thread.__init__(slef,name = Name)
-		self.urlist = Gurlist
-		#下载页面数
-		self.pages = 0
-		self.Flcok = Flcok
-		self.Rqueue = Rqueue
+        '''
+        threading.Thread.__init__(self,name = Name)
+        self.urlist = Gurlist
+        #下载页面数
+        self.pages = 0
+        self.Flcok = Flcok
+        self.Rqueue = Rqueue
         self.judger = Judger    #url判断
         self.tem_home_url=''    #局部主地址
         #对每个页面得到的urls进行存储 会在新页面里面进行刷新
         self.raw_url=[]
-		#存储库
-		self.saver = Saver
+        #存储库
+        self.saver = Saver
 
     def cg_tem_url_stdurl(self):
         '''
@@ -89,8 +89,7 @@ class reptile(threading.Thread):
             #判断是否为收录网站范围内 
             #!!!如果要判断是否为本平台范围内的网页 需要另外进行判断
             #!!!需要和communicator方面的判断
-            cdef:
-                int j
+           
             j = self.judger.judge(url)
             if j != -1:
                 '''
@@ -113,12 +112,10 @@ class reptile(threading.Thread):
                     其他站点收录的内容
                     存储到各个咱点的urlist池中
                     '''
-                    self.urlist[j].Find(url)
+                    #self.urlist[j].Find(url)
                     #存储到一定的数量，需要与其他平台联系
 
-        
-	
-	def run(self):  
+    def run(self):  
         '''
 		下载主程序
 
@@ -143,8 +140,6 @@ class reptile(threading.Thread):
                 中断操作
                 '''
                 pass
-
-
             
             print 'get from runtime',url
             
@@ -170,20 +165,21 @@ class reptile(threading.Thread):
                     try:  
                         if len(data)<300:
                             continue
-						#------------------------
-						#------SAVE FILE---------
-						#------IO--SAVE----------
-						#-------SAVE--TEMP--URLS-
-						#------------------------
-						self.saver.save(data)
-						#saver 应该将源码进行存储，同时对源码进行一定的处理进行储存
+                        #------------------------
+                        #------SAVE FILE---------
+                        #------IO--SAVE----------
+                        #-------SAVE--TEMP--URLS-
+                        #------------------------
+                        print "saving files" 
+                        self.saver.save(data)
+                        #saver 应该将源码进行存储，同时对源码进行一定的处理进行储存
                     except:  
                         print 'not a useful page'
                     #获取页面中url 加入到inqueue 和 Urlist中    
-					#------------------------
-					#--将url添加到tem_url中--
-					#------------------------
-					#!!!!!!!!!!!!!!!!!!!!!!!!!
+                    #------------------------
+                    #--将url添加到tem_url中--
+                    #------------------------
+                    #!!!!!!!!!!!!!!!!!!!!!!!!!
                     for item in self.htmlparser.get_url():
                         if item.find('#')<0:
                             self.raw_url.append(item)
@@ -200,20 +196,21 @@ class reptile(threading.Thread):
             except:  
                 print 'end error'  
 
-class Reptile:
-	'''
+
+cdef class Reptile:
+    '''
 	本平台爬虫系统
 	向下管理多线程爬虫  
 	水平管理分布式系统 管理数据池
-	'''
-	def __init__(self):
-		'''
-		per_max_pages:	每一个线程下载的最大页面数目
-		thread_num:		线程数目
-		'''
+    '''
+    def __init__(self):
+        '''
+        per_max_pages:	每一个线程下载的最大页面数目
+        thread_num:		线程数目
+        '''
         #相关的共用数据池 
         self.Rqueue = Queue()
-		self.thlist = []
+        self.thlist = []
         #需要为每个站点设置一个urlist 作为公共数据池
         self.urlist = []
         self.Flock = [] 
@@ -230,21 +227,22 @@ class Reptile:
 
         self.saver = Saver()
         self.judger = Judger()
-	
-	def run(self):
-		'''
-		运行主程序
-		配置多线程运行
-		'''
-		Flock = threading.RLock()
 
-		for i in range(config.THREAD_NUM):
+    def run(self):
+        '''
+        运行主程序
+        配置多线程运行
+        '''
+        Flock = threading.RLock()
+
+        for i in range(config.THREAD_NUM):
             #reptile(Gurlist,Rqueue,Name,Flock,Saver)
-			th = reptile(self.urlist,config.THREAD_NAME+str(i),Flock,self.saver)
+            th = reptile(self.urlist,config.THREAD_NAME+str(i),Flock,self.saver)
             self.thlist.append(th)
-		for th in self.thlist:
+        for th in self.thlist:
             th.start()
         #需要设定 startpage
+        startpage="http://www.cau.edu.cn"
         self.Rqueue.put(startpage)
 
     #--------------------------------------------------
@@ -252,7 +250,7 @@ class Reptile:
     #开始设定开始的分布式交流的程序
     #在此处添加communitor的和中断的一个线程
             
-
+cdef Reptile rep = Reptile()
 
 
 
