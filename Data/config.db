@@ -1,0 +1,11 @@
+create table config(
+    siteID INT PRIMARY KEY,
+    url CHAR
+);
+
+create table sites(
+    id SMALLINT PRIMARY KEY,
+    name CHAR,
+    url CHAR,
+    date DATE 
+); 

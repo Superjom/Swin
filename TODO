@@ -1,0 +1,14 @@
+查看python 的数据库编程 需要很多数据库方面的编程
+查看 PIL 从图片数据载入图片 source
+python组播
+将Swin数据进行更新
+图片从字符串中读取示范:
+    form PIL import Image
+    from StringIO import StringIO
+    f = open("1.jpg",'rb')
+    c = f.read()
+    f.close()
+    rawData = StringIO(c)
+    im = Image.open(rawData)
+    im.resize((200,100))
+    im.save(newname)

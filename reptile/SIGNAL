@@ -1,0 +1,53 @@
+#信号列表---------------------
+#初始化
+'init'
+#主服务器发出中断命令
+'halt'
+#向其他平台发送url任务
+'S_new_url'
+#发出中断恢复命令
+'resume'
+#发出停止命令
+'stop'
+#状态询问命令
+'status'
+#-------------------------------------
+#其他平台请求初始化信息
+'askfor_init'
+#子平台要求链接
+'ask_for_urls'
+#向主服务器发送新得到的新url
+'C_new_url'
+
+#传播消息格式
+<signal type=typename>
+    <data>
+        content
+    </data>
+</signal>
+
+举例:
+<signal type='init'/>
+
+主平台向其他平台发送链接时  只发送一个主地址  
+其他地址为相对地址
+<signal type='S_new_url'>
+    <data homeurl='http://cau.edu.cn'>
+        <url title='hello world' url='./hello_world.html'>
+    </data>
+</signal>
+
+
+操作序列
+init:
+    CentreServ从ip_list中逐个发送init信号 并且检测各平台状态
+    各平台向CentreServ发送init请求
+    CentreServ向平台发送url任务
+    各平台开始运行
+    
+
+
+
+
+
+

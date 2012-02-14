@@ -1,0 +1,33 @@
+每个平台上的网页唯一
+数据库设计
+    #专门为站点信息保存分配一个数据库
+    #为每一个站点分配一个表
+    sites:
+    htmlinfo:
+        docID   url     title       date
+    htmlsource:
+        docID   source  parsedsource
+    #htmlinfo and htmlsource is one-to-one conresponding
+-----------------------------------------------------------
+    imginfo:
+        imgID   docID   imgUrl
+    imgsource:
+        imgID   source
+    #imginfo and imgsource is one-to-one coresponding
+
+Format of config information:
+    home_url:
+        siteID, url
+    
+Format of each Site:
+    siteID (Name of Database)
+        tables:
+            htmlinfo
+            htmlsource
+            imginfo
+            imgsource
+
+            
+
+        
+        
