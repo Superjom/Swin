@@ -1,9 +1,0 @@
-digraph Reptile{
-    Judger[shape=box] 
-    HTML[style=dotted] 
-    HTML -> Reptile
-    cg_tem_url_stdurl
-
-    
-
-} 

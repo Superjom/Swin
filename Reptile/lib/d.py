@@ -1,2 +1,0 @@
-strr="hello" 
-strr.
