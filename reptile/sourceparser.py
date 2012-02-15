@@ -6,7 +6,8 @@ sys.setdefaultencoding('utf-8')
 from pyquery import PyQuery as pq
 import xml.dom.minidom as dom
 import chardet 
-
+from StringIO import StringIO
+from configure import Configure
 from PIL import Image
 
 class HtmlParser():
@@ -86,16 +87,42 @@ class PicParser:
     对图片的相关处理
     '''
     def __init__(self):
-        pass
+        self.configure = Configure()
+        self.size = self.configure.getImageMaxSize()
+    
+    def init(self,source):
+        imgData = StringIO(source)
+        self.img = Image.open(imgData)
+        print self.img.size
+    
+    def getSize(self):
+        return self.img.size
 
-    def compressPic(self,picsource):
-        pass
-
-    def transDbPic(self,picsource):
+    def compressedPic(self,source):
         '''
-        将图片进行压缩 并且取得源码
+        compress picture
         '''
-        pass
+        size = self.img.size
+        width = self.size[0]
+        height = self.size[1]
+        #proportion of width and height
+        ppn = width / height  
+        img_max_size = self.configure.getImageMaxSize
+        if ppn > (img_max_size[0] / img_max_size[1]):
+            '''
+            width is longer
+            limit width
+            '''
+            width = img_max_size[0]
+            height = width / ppn
+        else:
+            '''
+            limit height
+            '''
+            height = img_max_size[1]
+            width = ppn * height
+        size = (width,height)
+        return img.resize(size)
 
 if __name__ == '__main__':
     print 'start'

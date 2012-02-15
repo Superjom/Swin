@@ -29,10 +29,16 @@
 举例:
 <signal type='init'/>
 
+<signal type='home_url_list'>
+    <homeurl title='title_name' url='urlname'/>
+    <homeurl title='title_name' url='urlname'/>
+    <homeurl title='title_name' url='urlname'/>
+</signal>
+
 主平台向其他平台发送链接时  只发送一个主地址  
 其他地址为相对地址
 <signal type='S_new_url'>
-    <data homeurl='http://cau.edu.cn'>
+    <data siteID=2>
         <url title='hello world' url='./hello_world.html'>
     </data>
 </signal>

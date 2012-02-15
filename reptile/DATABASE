@@ -1,33 +1,34 @@
 每个平台上的网页唯一
 数据库设计
-    #专门为站点信息保存分配一个数据库
     #为每一个站点分配一个表
-    sites:
-    htmlinfo:
-        docID   url     title       date
-    htmlsource:
-        docID   source  parsedsource
+    configure:
+        siteID      url     name    maxpages
+        CREATE  TABLE configure (
+            "siteID" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , 
+            "url" CHAR NOT NULL , 
+            "name" CHAR NOT NULL , 
+            "date" DATETIME NOT NULL 
+        );
+
+    如：
+        1_source_info
+        1_source
+        1_img_info
+        1_img_source
     #htmlinfo and htmlsource is one-to-one conresponding
------------------------------------------------------------
-    imginfo:
-        imgID   docID   imgUrl
-    imgsource:
-        imgID   source
-    #imginfo and imgsource is one-to-one coresponding
 
-Format of config information:
-    home_url:
-        siteID, url
-    
-Format of each Site:
-    siteID (Name of Database)
-        tables:
-            htmlinfo
-            htmlsource
-            imginfo
-            imgsource
+    sites:
+    source_info:
+        docID   url     title       date
+        CREATE TABLE "1_source_info" ("docID" INTEGER PRIMARY KEY  NOT NULL , "url" CHAR, "title" CHAR, "date" DATETIME)
+    source:
+        docID source
+        CREATE TABLE "1_source" ("docID" INTEGER PRIMARY KEY  NOT NULL , "source" CHAR)
 
-            
+    img_info:
+        id      url     width       height
+        CREATE TABLE "1_img_info" ("id" INTEGER PRIMARY KEY  NOT NULL , "url" CHAR, "width" INTEGER, "height" INTEGER)
+    img:
+        id      source
 
-        
-        
+

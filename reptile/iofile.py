@@ -14,31 +14,17 @@ from judger import Judger
 from StringIO import StringIO
 from PIL import Image
 
-from ConfigParser import ConfigParser
-
-class Configure:
-    '''
-    configure operation of reptile liberary
-    '''
-    def __init__(self):
-        self.cp = ConfigParser()
-        self.cp.read("../Data/reptile.conf")
-
-    def getImgSize(self):
-        pass
-    
-    def getDbDir(self):
-        pass
+from configure import Configure
 
 class Collector():
     '''
     从html中提取相关tag内容
     并组合为一定格式  并进行存储
+    主要作用为转化为xml格式
     '''
     def __init__(self):
         self.htmlparser = HtmlParser()
         self.judger = Judger()
-        
 
     def init(self, html):
         '''
@@ -96,23 +82,17 @@ class Collector():
             childnode.appendChild(text_node)
         xmlnode.appendChild(childnode)
 
-    def transXml_Str(self,docID,url):
+    def transXml_Str(self,url):
         '''
         返回xml源码 以此格式储存
         '''
         str='<html></html>'
-        titleText=self.getTitleText()
-        self.dd=dom.parseString(str)
-        html=self.dd.firstChild
-        #生成title
-        title=self.dd.createElement('title')
-        html.appendChild(title)
-        title.setAttribute('text',titleText)
-        #生成b
-        self.XmlAppendNodesTextList(html, 'b')
-        self.XmlAppendNodesTextList(html, 'h1')
-        self.XmlAppendNodesTextList(html, 'h2')
-        self.XmlAppendNodesTextList(html, 'h3')
+        titleText = self.getTitleText()
+        self.dd = dom.parseString(str)
+        html = self.dd.firstChild
+        #为如下标签设立记录
+        for tag in ['title','b', 'h1', 'h2', 'h3']:
+            self.XmlAppendNodesTextList(html, tag)
         #生成a
         aa=self.htmlparser.getALink_Dic()
         a=self.dd.createElement('a')
@@ -135,63 +115,161 @@ class Collector():
         ctext=self.dd.createTextNode(content)
         cc.appendChild(ctext)
         html.appendChild(cc)
-        return html
         #print self.dd.toprettyxml()
+        return html
 
 import sqlite3 as sq
-class DataBaseOperation:
+
+class DBConfig:
     '''
     operation of database concerning file savage
     '''
     def __init__(self):
         #config database
-		self.config_cx = sq.connect(config.DB_CONFIG_PATH)
-		self.config_cu = self.cx.cursor()
+        self.configure = Configure()
+        dbpath = self.configure.getDBPath()
+        self.cx = sq.connect(dbpath)
+        self.cu = self.cx.cursor()
+
+    def initConfig(self, sitelist):
+        '''
+        create table config and insert some data
+        sitelist:
+            [
+                {
+                    url:    urlstr,
+                    name:   namestr,
+                    date:   datestr
+                },
+
+            ]
+        '''
+        print 'init configure'
+        #create configure table
+        strr = 'CREATE  TABLE "configure" ("siteID" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "url" CHAR NOT NULL , "name" CHAR NOT NULL , "date" DATETIME NOT NULL )'
+        self.cu.execute(strr)
+        #insert data
+        for site in sitelist:
+            '''
+            insert each site into configure table
+            '''
+            strr = "insert into configure (url, name, date) values('%s', '%s', '%s')" % (site['url'], site['name'], site['date'])
+            self.cu.execute(strr)
+
+    def __create_source_info(self, siteID):
+        '''
+        create {siteID}_source_info table 
+        '''
+        strr = 'CREATE TABLE "%d_source_info" ("docID" INTEGER PRIMARY KEY  NOT NULL , "url" CHAR, "title" CHAR, "date" DATETIME)' % siteID
+        self.cu.execute(strr)
+
+    def __create_source(self, siteID):
+        '''
+        create {siteID}_source table
+        '''
+        strr = 'CREATE TABLE "%d_source" ("docID" INTEGER PRIMARY KEY  NOT NULL , "source" CHAR)' % siteID
+        self.cu.execute(strr)
+
+    def __create_img_info(self, siteID):
+        '''
+        create {siteID}_img_info
+        '''
+        strr = 'CREATE TABLE "%d_img_info" ("id" INTEGER PRIMARY KEY  NOT NULL , "url" CHAR, "width" INTEGER, "height" INTEGER)' % siteID
+        self.cu.execute(strr)
+
+    def __create_img(self, siteID):
+        '''
+        {siteID}_img
+        '''
+        strr = 'CREATE TABLE "%d_img" ("id" CHAR PRIMARY KEY  NOT NULL , "source" CHAR)' % siteID
+        self.cu.execute(strr)
 
 
+    def initSites(self, sitelist):
+        '''
+        init tables:
+            {siteID}_source_info
+            {siteID}_source
+            {siteID}_img_info
+            {siteID}_img
+        '''
+        print 'init Sites'
+        for siteID in range(len(sitelist)):
+            #sourceinfo
+            self.__create_img(siteID)
+            self.__create_img_info(siteID)
+            self.__create_source(siteID)
+            self.__create_source_info(siteID)
+
+    def getSiteUrls(self):
+        '''
+        get all site home_urls
+        '''
+        strr = "select url from sites"
+        return self.cu.execute(strr)
+
+
+class DBSource:
+    '''
+    Database operation of html image and other file source
+    '''
+    def __init__(self):
+        self.configure = Configure()
+        dbpath = self.configure.getDBPath()
+        self.cx = sq.connect(dbpath)
+        self.cu = self.cx.cursor()
+
+    def init(self, siteID):
+        '''
+        read database connection
+        '''
+        self.siteID = siteID
+
+    def saveHtml(self, info, source, parsed_source):
+        '''
+        save html source
+        info = {
+            url:    urlstr,
+            title:  titlestr,
+            date:   date
+        }
+        '''
+        print 'save html source'
+        strr = 'insert into %d_source_info (url, title, date) values("%s", "%s", "%s")' % (self.siteID, info['url'], info['title'], info['date'])
+        self.cu.execute(strr)
+        strr = "insert into %d_source (source, parsedSource) values('%s', '%s')" % (self.siteID, source, parsed_source)
+        self.cu.execute(strr)
         
-
-
+    def saveImg(self, info, source):
+        '''
+        save image into database
+        info = {
+            url:    urlstr,
+            width:  width,
+            height: height
+        }
+        '''
+        #save image info
+        strr = "insert into %d_img_info (url, width, height) values ('%s', '%s', '%s')" % (self.siteID, info['url'], info['width'], info['height'])
+        self.cu.execute(strr)
+        #save image source
+        strr = "insert into %d_img (source) values ('%s')" % (self.siteID, sq.Binary(source))
+        self.cu.execute(strr)
+        
 
 class File:
     '''
     对于外界io的一些方法
     用户可以自由修改
     '''
+    def __init__(self):
+        self.db = DBSource()
     def __parseSource(self,source):
         '''
         将html源码进行解析 
         并且输出为特定格式
         '''
         pass
-
-    def __compressedPic(self,source):
-        '''
-        compress picture
-        '''
-        imgData = StringIO(source)
-        img = Image.open(imgData)
-        print img.size
-        size = img.size
-        width = size[0]
-        height = size[1]
-        #proportion of width and height
-        ppn = width / height  
-        if ppn > config.IMG_SIZE_PPN:
-            '''
-            width is longer
-            limit width
-            '''
-            width = IMG_MAX_SIZE[0]
-            height = width / ppn
-        else:
-            '''
-            limit height
-            '''
-            height = IMG_MAX_SIZE[1]
-            width = ppn * height
-        size = (width,height)
-        return img.resize(size)
 
     def saveCompressedPic(self, source):
         '''
