@@ -127,7 +127,8 @@ class DBConfig:
     def __init__(self):
         #config database
         self.configure = Configure()
-        dbpath = self.configure.getDBPath()
+        dbpath = (self.configure.getDBPath())[1:-1]
+        print "dbpath  ",dbpath
         self.cx = sq.connect(dbpath)
         self.cu = self.cx.cursor()
 
@@ -146,42 +147,44 @@ class DBConfig:
         '''
         print 'init configure'
         #create configure table
-        strr = 'CREATE  TABLE "configure" ("siteID" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "url" CHAR NOT NULL , "name" CHAR NOT NULL , "date" DATETIME NOT NULL )'
+        strr = 'CREATE  TABLE IF NOT EXISTS configure ("siteID" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "url" CHAR NOT NULL , "name" CHAR NOT NULL)' 
         self.cu.execute(strr)
         #insert data
         for site in sitelist:
             '''
             insert each site into configure table
             '''
-            strr = "insert into configure (url, name, date) values('%s', '%s', '%s')" % (site['url'], site['name'], site['date'])
+            strr = "insert into configure (url, name) values('%s', '%s')" % (site['url'], site['name'])
+            print strr
             self.cu.execute(strr)
+            self.cx.commit()
 
     def __create_source_info(self, siteID):
         '''
         create {siteID}_source_info table 
         '''
-        strr = 'CREATE TABLE "%d_source_info" ("docID" INTEGER PRIMARY KEY  NOT NULL , "url" CHAR, "title" CHAR, "date" DATETIME)' % siteID
+        strr = 'CREATE TABLE IF NOT EXISTS "%d_source_info" ("docID" INTEGER PRIMARY KEY  NOT NULL , "url" CHAR, "title" CHAR, "date" DATETIME)' % siteID
         self.cu.execute(strr)
 
     def __create_source(self, siteID):
         '''
         create {siteID}_source table
         '''
-        strr = 'CREATE TABLE "%d_source" ("docID" INTEGER PRIMARY KEY  NOT NULL , "source" CHAR)' % siteID
+        strr = 'CREATE TABLE IF NOT EXISTS "%d_source" ("docID" INTEGER PRIMARY KEY  NOT NULL , "source" CHAR)' % siteID
         self.cu.execute(strr)
 
     def __create_img_info(self, siteID):
         '''
         create {siteID}_img_info
         '''
-        strr = 'CREATE TABLE "%d_img_info" ("id" INTEGER PRIMARY KEY  NOT NULL , "url" CHAR, "width" INTEGER, "height" INTEGER)' % siteID
+        strr = 'CREATE TABLE IF NOT EXISTS "%d_img_info" ("id" INTEGER PRIMARY KEY  NOT NULL , "url" CHAR, "width" INTEGER, "height" INTEGER)' % siteID
         self.cu.execute(strr)
 
     def __create_img(self, siteID):
         '''
         {siteID}_img
         '''
-        strr = 'CREATE TABLE "%d_img" ("id" CHAR PRIMARY KEY  NOT NULL , "source" CHAR)' % siteID
+        strr = 'CREATE TABLE IF NOT EXISTS "%d_img" ("id" CHAR PRIMARY KEY  NOT NULL , "source" CHAR)' % siteID
         self.cu.execute(strr)
 
 
@@ -215,7 +218,7 @@ class DBSource:
     '''
     def __init__(self):
         self.configure = Configure()
-        dbpath = self.configure.getDBPath()
+        dbpath = (self.configure.getDBPath())[1:-1]
         self.cx = sq.connect(dbpath)
         self.cu = self.cx.cursor()
 
@@ -298,13 +301,18 @@ class File:
         pass
 
 if __name__ == '__main__':
-   c = Collector()  
-   f = open('hello.html','r')
-   content = f.read()
-   f.close()
-   c.init(content)
-   print c.getTitleText()
-   print c.getNodes('b')
-   print c.transXml_Str(1,'http://google.com').toprettyxml()
+    d = DBConfig()
+    home_urls = [
+        {'name':'cau',
+         'url':'http://www.cau.edu.cn'
+        },
+        {
+        'name':'baidu',
+        'url':'http://www.baidu.com'
+        }
+    ]
+    d.initConfig(home_urls)
+
+
 
 

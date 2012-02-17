@@ -15,8 +15,11 @@ import string
 import httplib
 
 from judger import Judger
-from List import List
+
+from List import Urlist
 from List import UrlQueue
+from List import Queue
+
 from sourceparser import HtmlParser
 from sourceparser import PicParser
 
@@ -32,7 +35,7 @@ class Reptile:
     '''
     单个线程
     '''
-    def __init__(self, name, url_queue, url_list, url_in_queue, Flock, home_urls , is_new_task, tem_conn, tem_siteID):
+    def __init__(self, name, url_queue, url_list, url_in_queue, Flock, home_urls , tem_conn, tem_siteID):
         '''
         name
         url_queue       从主服务器中分配到的url
@@ -45,6 +48,7 @@ class Reptile:
         tem_home_url    
         old_home_url    引用传递
         '''
+        #threading.Thread.__init__(self, name = name )  
         #本地测试url队列 如果在本地重复 则直接舍弃
         #如果不重复 加入临时队列 将来传输到中央服务器进行测试
         self.__url_list = url_list
@@ -57,7 +61,6 @@ class Reptile:
         self.__url_in_queue = url_in_queue
         self.__Flock = Flock
         self.__judger = Judger()
-        threading.Thread.__init__(self, name = name )  
         self.__home_urls = home_urls
         self.__conn = tem_conn
         #init temporary home_url and siteID
@@ -74,6 +77,10 @@ class Reptile:
         '''
         while(True):
             urlinfo = self.getAUrl()
+            if not urlinfo:
+                print "No Task\nqueue is empty!"
+                #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!i多线程时需要更多优化
+                return
             self.getPage(urlinfo[1])
             self.saveHtml(urlinfo[1], urlinfo[0])
             imgsrcs = self.getImgUrls()
@@ -94,8 +101,11 @@ class Reptile:
         '''
         page_url    子页面 如 ./index.html
         '''
+        print 'url> ',url
         self.__conn.request("GET", url)
+        print self.__conn
         r1 = self.__conn.getresponse()
+        print r1
         print r1.status
         if r1.status != 'OK':
             print r1.reason
@@ -143,7 +153,7 @@ class Reptile:
                 self.conn.close()
                 
             try:
-                self.conn = httplib.HTTPConnection(self.__tem_home_url)
+                self.conn = httplib.HTTPConnection(self.__tem_home_url, 80, False)
                 return True
             except:
                 return False
@@ -161,18 +171,23 @@ class Reptile:
         return self.htmlparser.getPicSrcs_List()
         
 
-    def AddNewInQueue(self, url_list):
+    def AddNewInQueue(self, page_url, url_list):
         '''
         将new_url添加到对应的queue中
         '''
         for url in url_list:
-            if not self.__url_list.find(url):
-                '''
-                not duplicate in url_list
-                '''
-    ################################################注意此处不能用siteID直接区分
-    ################!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!需要进一步判断
-                self.__url_in_queue[self.__tem_siteID].append(url)
+            #处理为绝对url
+            url = self.__judger.transToStdUrl(page_url, url)
+            #判断是否为本平台url
+            siteID = self.__judger.judgeUrl(url)
+            if siteID != -1:
+                if not self.__url_list.find(siteID, url):
+                    '''
+                    not duplicate in url_list
+                    '''
+                    #将url减少
+                    self.__judger.minusUrl_bool(siteID, url)
+                    self.__url_in_queue[siteID].append(url)
 
     def saveHtml(self, url, title):
         '''
@@ -190,6 +205,31 @@ class Reptile:
         imgsource = self.picparser.compressedPic(source)
         self.__dbsource.saveImg(info, imgsource)
         
+
+
+if __name__ == '__main__':
+    home_urls = [
+        'http://www.cau.edu.cn',
+        'http://www.baidu.com'
+    ]
+    home_num = len(home_urls)
+    l = Urlist(home_num)
+    q = UrlQueue(home_urls)
+    queue = Queue()
+    queue.init(0, 'http://www.cau.edu.cn')
+    queue.append("cau","http://www.cau.edu.cn/index")
+
+    name = "reptile"
+    Flock = threading.RLock()  
+    conn = httplib.HTTPConnection(home_urls[0], 80, timeout = 10)
+    conn.request('GET','/')
+    print conn
+    r = conn.getresponse()
+    print r.read()
+    tem_siteID = 0
+    r = Reptile(name, queue, l, q, Flock, home_urls, conn, tem_siteID)
+    r.requestSource('/')
+    
 
 
 

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <vector>
 using namespace std;
 
 #define LIST_H_
@@ -19,17 +20,18 @@ class List{
     string GetUrlsStr();
     void Show();
     int Find(long hashvalue);
+    int Insert(int i, Node node);
 };
 
 int List::GetSize()
 {
-    return this->list.size()
+    return this->list.size();
 }
 
 int List::Insert(int i, Node node)
 {
     if (i > this->GetSize() || i < 0) return false;
-    UrlNode burl;
+    Node burl;
     burl = node
     int j = this->GetSize();
     //添加一个空间

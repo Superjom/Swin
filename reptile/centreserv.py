@@ -6,7 +6,8 @@ Created on Feb 13, 2012
 '''
 from signal import Signal
 import socket
-import config
+import configure
+import threading  
 
 class CentreServ:
     '''
@@ -57,10 +58,8 @@ class CentreServ:
             return
         head = self.sg.getSignal(data)
         
-        elif head == config.SIGN['send_other_pc_url']:
+        if head == config.SIGN['send_other_pc_url']:
             '''
             为其他站点传递url
             '''
             print 'send other pc url'
-            pass
-

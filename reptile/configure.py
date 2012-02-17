@@ -66,3 +66,7 @@ class Configure:
     def getDBPath(self):
         return self.cp.get('database', 'db_file_path')
 
+if __name__ == '__main__':
+    c = Configure()    
+    print c.getDBPath()
+

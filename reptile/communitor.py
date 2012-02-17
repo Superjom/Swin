@@ -5,7 +5,7 @@ Created on Feb 12, 2012
 @author: chunwei
 '''
 import socket
-import config
+import configure
 import threading
 
 from pyquery import PyQuery as pq
@@ -61,10 +61,11 @@ class Signal:
 
     def __parse_new_url(self,signal):
         '''
+        读入xml signal
         S_new_url 
         C_new_url
         信号的解析
-        最终格式:
+        最终返回格式:
         {
             home_url: home_url_str,
             urls: [
@@ -219,13 +220,6 @@ class ClientServ(Server):
             中断恢复操作
             '''
             self.__signal_Resume()
-
-
-        
-        
-        
-
-
 
 
 if __name__ == "__main__":
