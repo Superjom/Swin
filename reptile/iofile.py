@@ -132,7 +132,16 @@ class DBConfig:
         self.cx = sq.connect(dbpath)
         self.cu = self.cx.cursor()
 
-    def initConfig(self, sitelist):
+    def __del__(self):
+        self.cx.commit()
+
+    def init(self, home_list):
+        '''
+        mannual init
+        '''
+        self.home_list = home_list
+
+    def initConfig(self):
         '''
         create table config and insert some data
         sitelist:
@@ -150,7 +159,7 @@ class DBConfig:
         strr = 'CREATE  TABLE IF NOT EXISTS configure ("siteID" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "url" CHAR NOT NULL , "name" CHAR NOT NULL)' 
         self.cu.execute(strr)
         #insert data
-        for site in sitelist:
+        for site in self.home_list:
             '''
             insert each site into configure table
             '''
@@ -163,32 +172,36 @@ class DBConfig:
         '''
         create {siteID}_source_info table 
         '''
-        strr = 'CREATE TABLE IF NOT EXISTS "%d_source_info" ("docID" INTEGER PRIMARY KEY  NOT NULL , "url" CHAR, "title" CHAR, "date" DATETIME)' % siteID
+        strr = 'CREATE TABLE IF NOT EXISTS "source_info%d" ("docID" INTEGER PRIMARY KEY  NOT NULL , "url" CHAR, "title" CHAR, "date" DATETIME)' % siteID
+        print strr
         self.cu.execute(strr)
 
     def __create_source(self, siteID):
         '''
         create {siteID}_source table
         '''
-        strr = 'CREATE TABLE IF NOT EXISTS "%d_source" ("docID" INTEGER PRIMARY KEY  NOT NULL , "source" CHAR)' % siteID
+        strr = 'CREATE TABLE IF NOT EXISTS "source%d" ("docID" INTEGER PRIMARY KEY  NOT NULL , "source" CHAR, "parsedSource" CHAR)' % siteID
+        print strr
         self.cu.execute(strr)
 
     def __create_img_info(self, siteID):
         '''
         create {siteID}_img_info
         '''
-        strr = 'CREATE TABLE IF NOT EXISTS "%d_img_info" ("id" INTEGER PRIMARY KEY  NOT NULL , "url" CHAR, "width" INTEGER, "height" INTEGER)' % siteID
+        strr = 'CREATE TABLE IF NOT EXISTS "img_info%d" ("id" INTEGER PRIMARY KEY  NOT NULL , "url" CHAR, "width" INTEGER, "height" INTEGER)' % siteID
+        print strr
         self.cu.execute(strr)
 
     def __create_img(self, siteID):
         '''
         {siteID}_img
         '''
-        strr = 'CREATE TABLE IF NOT EXISTS "%d_img" ("id" CHAR PRIMARY KEY  NOT NULL , "source" CHAR)' % siteID
+        strr = 'CREATE TABLE IF NOT EXISTS "img%d" ("id" CHAR PRIMARY KEY  NOT NULL , "source" CHAR)' % siteID
+        print strr
         self.cu.execute(strr)
 
 
-    def initSites(self, sitelist):
+    def initSites(self):
         '''
         init tables:
             {siteID}_source_info
@@ -197,7 +210,7 @@ class DBConfig:
             {siteID}_img
         '''
         print 'init Sites'
-        for siteID in range(len(sitelist)):
+        for siteID in range(len(self.home_list)):
             #sourceinfo
             self.__create_img(siteID)
             self.__create_img_info(siteID)
@@ -221,6 +234,10 @@ class DBSource:
         dbpath = (self.configure.getDBPath())[1:-1]
         self.cx = sq.connect(dbpath)
         self.cu = self.cx.cursor()
+        self.siteID = -1
+
+    def __del__(self):
+        self.cx.commit()
 
     def init(self, siteID):
         '''
@@ -237,11 +254,16 @@ class DBSource:
             date:   date
         }
         '''
+        print '-------------------------------------'
+        print 'saveHtml'
         print 'save html source'
-        strr = 'insert into %d_source_info (url, title, date) values("%s", "%s", "%s")' % (self.siteID, info['url'], info['title'], info['date'])
+        strr = 'insert into source_info%d (url, title, date) values("%s", "%s", "%s")' % (self.siteID, info['url'], info['title'], info['date'])
+        print strr
         self.cu.execute(strr)
-        strr = "insert into %d_source (source, parsedSource) values('%s', '%s')" % (self.siteID, source, parsed_source)
+        strr = "insert into source%d (source, parsedSource) values('%s', '%s')" % (self.siteID, source, parsed_source)
+        print strr
         self.cu.execute(strr)
+        self.cx.commit()
         
     def saveImg(self, info, source):
         '''
@@ -256,8 +278,9 @@ class DBSource:
         strr = "insert into %d_img_info (url, width, height) values ('%s', '%s', '%s')" % (self.siteID, info['url'], info['width'], info['height'])
         self.cu.execute(strr)
         #save image source
-        strr = "insert into %d_img (source) values ('%s')" % (self.siteID, sq.Binary(source))
+        strr = "insert into img%d (source) values ('%s')" % (self.siteID, sq.Binary(source))
         self.cu.execute(strr)
+        self.cx.commit()
         
 
 class File:
@@ -267,6 +290,7 @@ class File:
     '''
     def __init__(self):
         self.db = DBSource()
+
     def __parseSource(self,source):
         '''
         将html源码进行解析 
@@ -301,6 +325,7 @@ class File:
         pass
 
 if __name__ == '__main__':
+    '''
     d = DBConfig()
     home_urls = [
         {'name':'cau',
@@ -311,7 +336,25 @@ if __name__ == '__main__':
         'url':'http://www.baidu.com'
         }
     ]
-    d.initConfig(home_urls)
+    d.init(home_urls)
+    d.initConfig()
+    d.initSites()
+    '''
+
+    c = DBSource()
+    c.init(0)
+    info = {
+        'url':"www.cau.edu.cn",
+        'title':"i你好，我就是试试啊",
+        'date':"2012-02-12",
+    }
+    source = "<html><b>hello world</b></html>"
+    parsedSource = "<html><b>right parsedSource</html>"
+    c.saveHtml(info, source, parsedSource)
+    
+    
+    
+    
 
 
 

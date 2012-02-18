@@ -4,6 +4,7 @@ Created on Feb 12, 2012
 
 @author: chunwei
 '''
+#-------------------------------------------------------------
 import os
 import threading  
 import time  
@@ -11,9 +12,10 @@ import urllib2
 import StringIO  
 import gzip  
 import string  
-
+import chardet
 import httplib
-
+import datetime as datetime
+#-------------------------------------------------------------
 from judger import Judger
 
 from List import Urlist
@@ -25,8 +27,8 @@ from sourceparser import PicParser
 
 from iofile import DBSource
 from iofile import Collector
+#-------------------------------------------------------------
 
-import datetime as datetime
 '''
 新特性：
     从urlib2 更替为 httplib 一次分配一个站点的爬取任务 重复利用DNS缓存
@@ -70,6 +72,20 @@ class Reptile:
         self.__old_siteID = self.__tem_siteID
         self.__dbsource = DBSource()
         self.__collector = Collector()
+        self.__cur_pageurl = ''
+
+    def init(self, siteID):
+        self.siteID = siteID
+        self.__dbsource.init(siteID)
+
+    def transcode(self, source):
+        res = chardet.detect(source)
+        confidence = res['confidence']
+        encoding = res['encoding']
+        if confidence < 0.6:
+            return False
+        else:
+            return unicode(source, encoding)
         
     def run(self):
         '''
@@ -81,46 +97,63 @@ class Reptile:
                 print "No Task\nqueue is empty!"
                 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!i多线程时需要更多优化
                 return
-            self.getPage(urlinfo[1])
+            source = self.getPage(urlinfo[1])
+            #print source
+            self.htmlparser.init(source)
             self.saveHtml(urlinfo[1], urlinfo[0])
             imgsrcs = self.getImgUrls()
-            for src in imgsrcs:
-                imgsource = self.getImg(src)
-                self.picparser.init(imgsource)
-                size = self.picparser.getSize()
-                info = {
-                    'url':src,
-                    'width':size[0],
-                    'height':size[1]
-                }
-                self.saveImg(info, imgsource)
-                newurls = self.htmlparser.getALinkText_List()
-            self.AddNewInQueue(newurls)
+            if imgsrcs:
+                '''
+                if there are pictures, download them
+                '''
+                for src in imgsrcs:
+                    imgsource = self.getImg(src)
+                    self.picparser.init(imgsource)
+                    size = self.picparser.getSize()
+                    info = {
+                        'url':src,
+                        'width':size[0],
+                        'height':size[1]
+                    }
+                    self.saveImg(info, imgsource)
+            newurls = self.htmlparser.getALinkText_List()
+            self.AddNewInQueue(self.__cur_pageurl, newurls)
 
     def requestSource(self, url):
         '''
         page_url    子页面 如 ./index.html
         '''
         print 'url> ',url
-        self.__conn.request("GET", url)
-        print self.__conn
+        self.__conn.request("GET", '/')
+        #print self.__conn
         r1 = self.__conn.getresponse()
-        print r1
+        #print r1
         print r1.status
+        data = r1.read()
+        '''
         if r1.status != 'OK':
+            print 'status is ',r1.status
+            print 'status not OK'
             print r1.reason
             return False
         data = r1.read()
         if not len(data):
+            print 'length of data is 0'
             return False
+        '''
         return data
     
     def getPage(self, page_url):
         '''
         path_url     './home/index.php'
         '''
+        self.__cur_pageurl = page_url
+        print 'page_url',page_url
         data = self.requestSource(page_url)
         if data:
+            data = self.transcode(data)
+            if not data:
+                return False
             self.__collector.init(data)
         return data
         
@@ -129,7 +162,7 @@ class Reptile:
         '''
         img_url    './img/1.jpg'
         '''
-        return self.getPage(img_url)
+        return self.requestSource(img_url)
         
 
     def updateConn(self):
@@ -209,26 +242,37 @@ class Reptile:
 
 if __name__ == '__main__':
     home_urls = [
-        'http://www.cau.edu.cn',
-        'http://www.baidu.com'
+        "www.cau.edu.cn",
+        "www.baidu.com"
     ]
     home_num = len(home_urls)
     l = Urlist(home_num)
     q = UrlQueue(home_urls)
     queue = Queue()
-    queue.init(0, 'http://www.cau.edu.cn')
-    queue.append("cau","http://www.cau.edu.cn/index")
+    queue.init(0, 'www.cau.edu.cn')
+    queue.append("cau","www.cau.edu.cn/")
 
     name = "reptile"
     Flock = threading.RLock()  
-    conn = httplib.HTTPConnection(home_urls[0], 80, timeout = 10)
-    conn.request('GET','/')
-    print conn
+    print 'home_url >',home_urls[0]
+
+    #home_url = "www.cau.edu.cn"
+    home_url = home_urls[0]
+    print home_url
+    conn = httplib.HTTPConnection(home_url, 80, timeout = 10)
+    conn.request("GET", "/")
+
+    #conn = httplib.HTTPConnection("www.cau.edu.cn", 80, timeout = 10)
     r = conn.getresponse()
-    print r.read()
+    #print r.read()
     tem_siteID = 0
+
+    conn = httplib.HTTPConnection("news.cau.edu.cn", 80, timeout = 10)
     r = Reptile(name, queue, l, q, Flock, home_urls, conn, tem_siteID)
-    r.requestSource('/')
+    r.init(0)
+    r.run()
+
+
     
 
 

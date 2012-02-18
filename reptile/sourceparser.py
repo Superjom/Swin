@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+from __future__ import division
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
+
 
 from pyquery import PyQuery as pq
 import xml.dom.minidom as dom
@@ -91,24 +93,36 @@ class PicParser:
         self.size = self.configure.getImageMaxSize()
     
     def init(self,source):
+        print 'image open'
         imgData = StringIO(source)
         self.img = Image.open(imgData)
         print self.img.size
     
     def getSize(self):
+        print 'get size: ', self.img.size
         return self.img.size
+    
+    def getCompressedSize(self):
+        return self.size
 
     def compressedPic(self,source):
         '''
         compress picture
         '''
-        size = self.img.size
-        width = self.size[0]
-        height = self.size[1]
+        size = self.getSize()
+        print 'get size',size
+        width = int(size[0])
+        height = int(size[1])
         #proportion of width and height
         ppn = width / height  
-        img_max_size = self.configure.getImageMaxSize
-        if ppn > (img_max_size[0] / img_max_size[1]):
+        print 'width/height',width,height,width/height
+        print 'ppn',ppn
+        img_max_size = self.configure.getImageMaxSize()
+
+        mwidth = img_max_size[0]
+        mheight = img_max_size[1]
+
+        if ppn > (mwidth / mheight):
             '''
             width is longer
             limit width
@@ -121,8 +135,10 @@ class PicParser:
             '''
             height = img_max_size[1]
             width = ppn * height
-        size = (width,height)
-        return img.resize(size)
+        self.size = (int(width), int(height))
+        print 'size  ',self.size
+        source = self.img.resize(self.size).tostring()
+        return {'size':self.size, 'source':source}
 
 if __name__ == '__main__':
     print 'start'

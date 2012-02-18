@@ -54,9 +54,11 @@ class Configure:
         '''
         (width , height)
         '''
-        width = self.cp.get('image', 'max_width')
-        height = self.cp.get('image', 'max_height')
-        return (width, height)
+        width = self.cp.getint('image', 'max_width')
+        height = self.cp.getint('image', 'max_height')
+        print 'config'
+        print 'get w/h ',width,'    ',height
+        return [int(width), int(height)]
 
     def setImageMaxSize(self, size = (200, 200)):
         self.cp.set('image', 'max_width', size[0])
