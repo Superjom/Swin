@@ -18,6 +18,9 @@ class HtmlParser():
     '''
     def init(self,html):
         self.d=pq(html)
+        if not len(self.d('body')):
+            return False
+        return True
 
     def getNodeText_List(self, tagname):
         nodes = self.d(tagname)
@@ -37,9 +40,10 @@ class HtmlParser():
         aa={}
         for i in range(len(a)):
             aindex=a.eq(i)
-            aa.setdefault(aindex.text(),aindex.attr('href'))
+            href = aindex.attr('href')
+            aa.setdefault(aindex.text(), href)
         return aa
-
+    
     def getALinkText_List(self):
         '''
         取得链接列表

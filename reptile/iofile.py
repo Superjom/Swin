@@ -24,7 +24,6 @@ class Collector():
     '''
     def __init__(self):
         self.htmlparser = HtmlParser()
-        self.judger = Judger()
 
     def init(self, html):
         '''
@@ -67,7 +66,7 @@ class Collector():
         如 <b> 
             <item>hello</item>
             <item>world</item>
-           </b>
+          </b>
         '''
         html_node_text_list = self.d(tagname)
         print html_node_text_list

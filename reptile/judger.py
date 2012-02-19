@@ -9,28 +9,37 @@ class Judger:
     '''
     测试url是否合格
     '''
-    def __init__(self):
+    def __init__(self, home_urls):
         '''
-        get home_urls and other information
+        home_urls:     传入完整的绝对url 站点根目录
+        如：http://www.cau.edu.cn
         '''
-        self.home_urls = []
+        self.home_urls = home_urls
+        self.home_netlocs = []
+        print self.home_urls
 
-    def init(self, home_urls_list):
+
+    def __findSiteID(self, url):
         '''
-        更新home_urls
+        url: 
         '''
-        self.home_urls = home_urls_list
+        length = 0
+        for i,u in enumerate(self.home_urls):
+            length = len(u)
+            if len(url) > length and url[:length] == u:
+                return i
+        return -1
     
-    def judgeUrl(self,newurl):
+    def judgeUrl(self, page_url, newurl):
         '''
         judge whether a newurl belongs to sites
         '''
-        for siteID,url in enumerate(self.home_urls):
-            length = len(url)
-            if len(newurl) >= length and newurl[:length] == url:
-                return siteID
-        return -1
-    
+        #转化为绝对地址
+        url = self.transToStdUrl(page_url, newurl)
+        #判断是否为收录范围内的
+        #对url进行解析
+        return self.__findSiteID(url)
+   
     def transToStdUrl(self,homeurl,newurl):
         '''
         transfer a new url to a right format url 
@@ -42,29 +51,15 @@ class Judger:
             return newurl
         return urlparse.urljoin(homeurl, newurl)
 
-    def minusUrl_bool(self, siteID, url):
-        '''
-        将绝对url统一去除home_url 以剪短字符串
-        '''
-        le = len(self.home_urls[siteID])
-        if len(url) < le :
-            return False
-        else:
-            turl = url[le:]
-            if turl[0] == '/':
-                turl = turl[1:]
-            return turl
-
 if __name__ == "__main__":
-    j = Judger()
     home_urls = ['http://www.cau.edu.cn', 
                     'http://www.google.com']
-    j.init(home_urls)
+    j = Judger(home_urls)
     turl = "./tem/index.php"
-    url = j.transToStdUrl('http://www.cau.edu.cn/page', turl)
-    print 'url: ',url
-    siteID = j.judgeUrl(url)
-    print j.minusUrl_bool(siteID, url)
+    #url = j.transToStdUrl('http://www.cau.edu.cn/page', turl)
+    #print 'url: ',url
+    siteID = j.judgeUrl('http://www.google.com',turl)
+    print 'siteID',siteID
 
         
             

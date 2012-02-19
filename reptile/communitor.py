@@ -51,6 +51,8 @@ class DataTransfer:
         sock.close()
 
 
+
+
 class Signal:
     '''
     信号相关的处理
@@ -128,47 +130,51 @@ class Signal:
         '''
         pass
 
-class Server:
-    def __init__(self, addr):
-        self.__initServer(addr)
-
-    def __initServer(self, addr):
+class Server(threading.Thread):
+    def __init__(self, _continue):
         '''
-        run server
-        初始化服务器  接受其他平台询问及服务
+        continue is a list which will send signal to server
+        whether it continue to run
         '''
-        self.tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.tcpSerSock.bind(addr)
+        self._continue = _continue
+        Name="chun"
+        threading.Thread.__init__(self, name = Name )  
+        self.tcpSerSock = socket(AF_INET, SOCK_STREAM)
+        self.tcpSerSock.bind(ADDR)
         self.tcpSerSock.listen(5)
+        self.num = 0
 
-    def serverRun(self):
-        '''
-        本地TCP服务程序
-        一般服务程序需要有一个线程 一直等待进行连接
-        需要在启动时便开始运行
-        当有连接时，传送一个__single_server进行服务
-        相关信息:
-            ask_for_urls        子平台要求新的链接任务
-        '''
-        print 'waiting for connection...'
-        clientsock,addr = self.tcpSerSock.accept()
-        print '...connected from:',addr
-        t = threading.Thread(target = self.getConnection, args=[clientsock])
-        t.setDaemon(True)
-        t.start()
+    def run(self):
+        print 'serv'
+        while True:
+            print 'waiting for connection...'
+            tcpCliSock,addr = self.tcpSerSock.accept()
+            print '...connected from:',addr
+
+            print 'start a new thread'
+            #start new thread to serve client
+            t = threading.Thread(target = self.getConnection, args=[tcpCliSock])
+            t.setDaemon(True)
+            t.start()
+            print 'thread is ended'
+            if self.num == 3 or self._continue[0] == False:
+                print 'self.num ',self.num
+                print 'it is going to end the server program'
+                break
+        self.tcpSerSock.close()
 
     def getConnection(self, clientsock):
-        '''
-        基础的字符串型信号传递
-        '''
-        print "New Child", threading.current_thread().getName()
-        print "Got connection from ",clientsock.getpeername()
-        data = clientsock.recv(4096)
-        if not len(data):
-            print 'received empty data'
-            print 'server threading is going to end'
-            return
-        print data
+        self.num += 1 
+        while True:
+            data = clientsock.recv(4096)
+            if not len(data):
+                print 'received empty data'
+                print 'thread is to end'
+                break
+            else:
+                print data
+                clientsock.send('[%s] %s'% (ctime(),data))
+        clientsock.close()
 
 
 class ClientServ(Server):
@@ -178,6 +184,13 @@ class ClientServ(Server):
     def __init__(self, addr):
         Server.__init__(addr)
         self.signal = Signal()
+
+    def getConnection(self,clientsock):
+        '''
+        重载连接后操作
+        '''
+        print 'get connection'
+        source = clientsock.recv(4096)
 
     def getConnection(self,clientsock):
         '''
