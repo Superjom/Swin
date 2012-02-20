@@ -57,16 +57,16 @@ class HtmlParser():
             nodelist.append(node.text())
         return nodes
 
-    def getALink_Dic(self):
+    def getALink_list(self):
         '''
         返回 url 的字典 name:url
         '''
         a=self.d('a')
-        aa={}
+        aa = []
         for i in range(len(a)):
             aindex=a.eq(i)
             href = aindex.attr('href')
-            aa.setdefault(aindex.text(), href)
+            aa.append( [aindex.text(), href])
         return aa
     
     def getALinkText_List(self):

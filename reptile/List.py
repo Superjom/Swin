@@ -24,6 +24,9 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301 USA
 ######################### END LICENSE BLOCK #########################
+
+import Queue
+
 class List(list):
     'the runtime list for all the url list'
     def find(self, url):  
@@ -89,8 +92,10 @@ class Urlist:
         for i in range(self.siteNum):
             print '-'*50
             print self.list[i].show()
+#get() 超时时间
+TIMEOUT = 3
 
-class Queue:
+class Queue(Queue.Queue):
     '''
     url队列
     '''
@@ -102,66 +107,75 @@ class Queue:
             相对地址唯一标志一个url
         '''
         self.siteID = -1
-        self.home_url = ''
-        self.queue = []
+        
+    def init(self, siteID):
+        self.__siteID = siteID
 
-    def init(self, siteID, home_url):
-        self.siteID = siteID
-        self.home_url = home_url
-
-    def append(self, title, url):
-        #对存入的url进行处理
-        if url[:7] == 'http://':
-            '''
-            转为绝对地址
-            '''
-            le = len(self.home_url)
-            url = url[le:]
-        self.queue.append([title, url])
-
-    def getList(self):
-        return self.queue
-
-    def clear(self):
-        '''
-        清空
-        '''
-        self.queue = []
-
-    def pop(self):
-        return self.queue.pop()
-
-    def size(self):
-        return len(self.queue)
-
-    def show(self):
-        for i in range(len(self.queue)):
-            print self.queue[i]
-
+MAX = 100
 class UrlQueue:
     def __init__(self, home_urls):
         self.siteNum = len(home_urls)
         self.queue = []
+        #统一记录每个Queue的长度
+        self.qsize = []
+        #扫描指针 从此Queue检测是否符合要求
+        self.__index = 0
+        
         for i in range(self.siteNum):
             q = Queue()
-            q.init(i, home_urls[i])
+            q.init(i)
             self.queue.append(q)
+            self.qsize.append(0)
     
     def size(self, siteID):
-        return self.queue[siteID].size()
+        return self.queue[siteID].qsize()
+    
+    def __get_right_siteID(self):
+        '''
+        取得有一定量url储备的站点id
+        '''
+        maxn = 0
+        max_index = 0
+        size = 0
+        while (self.size(self.__index) < MAX):
+            '''
+            遍历
+            '''
+            self.__index += 1
+            size = self.size(self.__index)
+            if self.size(self.__index) > maxn:
+                maxn = self.size(self.__index)
+                max_index = self.__index
+        return (max_index, maxn)
 
-    def append(self, siteID, title, url):
-        self.queue[siteID].append([title, url])
+    def put(self, siteID, title, url):
+        self.queue[siteID].put([title, url])
 
-    def pop(self, siteID):
-        return self.queue[siteID].pop()
-
-    def getList(self):
-        return self.queue
-
-    def clear(self, siteID):
-        self.queue[siteID].clear()
-
+    def get(self, siteID):
+        '''
+        如果数据池为空超过 3 s 
+        则引发 Queue.empty 错误
+        '''
+        return self.queue[siteID].get(timeout = 3)
+    
+    def getUrlList(self, maxsize):
+        '''
+        从候选队列中选出一个最合适的队列 取出一定量的list
+        '''
+        idx = self.__find_right_index()
+        size = self.size(idx)
+        if size == 0:
+            return False
+        if size > maxsize:
+            size = maxsize
+        ulist = []
+        for i in range(size):
+            ulist.append(self.get(idx))
+        res = {}
+        res['siteID'] = idx
+        res['urls'] = ulist
+        return res
+    
     def show(self):
         print 'show queue'
         for i in range(self.siteNum):

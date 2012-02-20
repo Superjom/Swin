@@ -86,6 +86,7 @@ class Reptile:
         #默认为每一个站点分配一个inqueue
         #本地临时记录队列 在url_list中测试不重复后 加入in_queue
         #在积累到一定量后 传输给中央服务器管理
+        #Queue()
         self.__url_in_queue = url_in_queue
         #----------------------------------------------------------------
         self.__Flock = Flock
@@ -107,6 +108,7 @@ class Reptile:
     def init(self, siteID):
         self.siteID = siteID
         self.__dbsource.init(siteID)
+        self.__url_queue.init(siteID)
     
     def conn(self):
         '''
@@ -234,14 +236,14 @@ class Reptile:
         '''
         return self.__htmlparser.getPicSrcs_List()
         
-    def AddNewInQueue(self, page_url, url_list):
+    def addNewInQueue(self, page_url, url_list):
         '''
         url直接为原始的url   不需要另外进行处理
         将new_url添加到对应的queue中
         '''
-        for url in url_list:
+        for urlinfo in url_list:
             #处理为绝对url
-            url = self.__judger.transToStdUrl(page_url, url)
+            url = self.__judger.transToStdUrl(page_url, urlinfo[1])
             siteID = self.__judger.judgeUrl(page_url, url)
             path = urlparse.urlsplit(url).path
             #判断是否为本平台url
@@ -251,7 +253,7 @@ class Reptile:
                     not duplicate in url_list
                     '''
                     #将url减少
-                    self.__url_in_queue(siteID, path)
+                    self.__url_in_queue(siteID, urlinfo[0], path)
 
     def saveHtml(self, url, title):
         '''
@@ -269,6 +271,56 @@ class Reptile:
         imgsource = self.picparser.compressedPic(source)
         self.__dbsource.saveImg(info, imgsource)
 
+class ReptileRun:
+    '''
+    线程主控制程序
+    负责爬取任务
+    '''
+    def __init__(self):
+        pass
+
+    def init(self,home_list, reptile_num):
+        '''
+        所有动态初始化过程 
+        '''
+        #新建 queue  in_queue list
+        self.urlist = Urlist()
+        for i in range(len(home_list)):
+
+
+    def halt(self):
+        '''
+        中断操作
+        '''
+        pass
+
+    def stop(self):
+        '''
+        向公共队列插入停止消息 
+        各线程得到消息后停止运行
+        '''
+        pass
+
+    def resume(self):
+        '''
+        恢复断电继续运行
+        '''
+        pass
+    
+    def status(self):
+        '''
+        返回状态
+        '''
+        pass
+
+    def run(self):
+        '''
+        各线程开始运行
+        '''
+        pass
+
+
+
 if __name__ == '__main__':
     home_urls = [
         "http://www.cau.edu.cn",
@@ -277,8 +329,9 @@ if __name__ == '__main__':
     home_num = len(home_urls)
     l = Urlist(home_num)
     q = UrlQueue(home_urls)
+
     queue = Queue()
-    queue.init(0, 'http://www.cau.edu.cn')
+    queue.init(0)
     queue.append("cau","http://www.cau.edu.cn")
 
     name = "reptile"
@@ -293,6 +346,8 @@ if __name__ == '__main__':
     r = Reptile(name, queue, l, q, Flock, home_urls, tem_siteID)
     r.init(0)
     print r.getPage('/')
-    print r.getUrls()
+    urls = r.getUrls()
+    print urls
     print r.getImgUrls()
+    r.addNewInQueue('http://www.cau.edu.cn','开放的中国农业大学欢迎您!','/')
 

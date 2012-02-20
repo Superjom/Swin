@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import dialog
 
-
 class SwinFrame:
     '''
     界面
@@ -75,12 +74,12 @@ class SwinFrame:
             )
 
 
-    def modeSelect(d):
+    def modeSelect(self):
         '''
         选择本平台为服务器or客户端
         '''
         while True:
-            (code, tag) = d.radiolist(
+            (code, tag) = self.d.radiolist(
                 "你想要将本机器作为爬虫控制服务器还是爬取子平台工作？",
                 width = 85,
                 choices = [
@@ -110,6 +109,13 @@ class SwinFrame:
             if self.handle_exit_code(code):
                 break
         return answer
+
+    def homelistConfig(self):
+        '''
+        homelist
+        '''
+        pass
+            
 
 
 

@@ -66,6 +66,12 @@ class CentreServ(threading.Thread):
                 break
         self.tcpSerSock.close()
 
+    def frame(self):
+        '''
+        显示图形界面
+        '''
+        pass
+
     def getConnection(self, clientsock):
         self.num += 1 
         while True:
