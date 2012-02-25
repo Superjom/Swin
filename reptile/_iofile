@@ -1,2 +1,110 @@
+# -*- coding: utf-8 -*-
 from debug import *
+from iofile import *
+from PIL import Image
 
+homeurls = [
+    {
+    'url':'http://www.cau.edu.cn',
+    'name':'开放的中国农业大学欢迎您!'
+    },
+    {
+    'url':'http://www.baidu.com',
+    'name':'百度'
+    },
+    {
+    'url':'http://www.google.com.hk',
+    'name':'谷歌'
+    },
+    {
+    'url':'http://www.facebook.com',
+    'name':'facebook'
+    }
+]
+
+class testDBConfig:
+    def __init__(self):
+        console("self.__init__()")
+        self.c = DBConfig()
+
+    def init(self):
+        console("self.init()")
+        self.c.init(homeurls)
+
+    def initConfig(self):
+        console("self.initConfig()")
+        self.c.initConfig()
+
+    def initSites(self):
+        console("self.initSites()")
+        self.c.initSites()
+
+def debug_DBConfig():
+    conheader("DBConfig")
+    d = testDBConfig()
+    d.init()
+    d.initConfig()
+    d.initSites()
+#------------------------------------------------------------
+
+import cStringIO
+class testDBSource:
+    def __init__(self):
+        console("self.__init__()")
+        self.d = DBSource()
+
+    def init(self):
+        console("self.init()")
+        self.d.init(2)
+
+    def saveHtml(self):
+        console("self.saveHtml()")
+        info = {
+            'url':'http://www.cau.edu.cn/index/help.html',
+            'title':'中国农业大学',
+            'date':'2012-03-38'
+        }
+        source = '''
+            <html> source </html>
+        '''
+        parsed_source = '''
+            <html> parsed_source </html>
+        '''
+        self.d.saveHtml(info, source, parsed_source)
+
+    def saveImg(self):
+        '''
+        完整测试 从PIL出来的图片数据
+        存储到数据库 然后显示出来
+        '''
+        console("self.saveImg()")
+        img = Image.open('1.jpg')
+        data = img.tostring()
+        size = img.size
+        info = {
+            'url':'http://www.cau.edu.cn/sdlfjafjassfoiefjewfdslfjsdskfjsdfsfklsfsdljfsfjsdlfjsdlf.jpg',
+            'width':size[0],
+            'height':size[1]
+        }
+        self.d.saveImg(info, data)
+
+    def getImg(self):
+        console("self.getImg()")
+        data = self.d.getImg(2, 1)
+        print 'data',data
+        f = open('ri.jpg', 'wb')
+        f.write(data[0])
+        f.close()
+
+def debug_DBSource():
+    conheader("DBSource")
+    d = testDBSource()
+    d.init()
+    #d.saveHtml()
+    #d.saveImg()
+    d.getImg()
+
+
+if __name__ == '__main__':
+    #debug_DBConfig()
+    debug_DBSource()

@@ -118,7 +118,7 @@ class DBConfig:
         '''
         {siteID}_img
         '''
-        strr = 'CREATE TABLE IF NOT EXISTS "img%d" ("id" CHAR PRIMARY KEY  NOT NULL , "source" CHAR)' % siteID
+        strr = 'CREATE TABLE IF NOT EXISTS "img%d" ("id" INTEGER PRIMARY KEY  NOT NULL , "source" blob)' % siteID
         print strr
         self.cu.execute(strr)
 
@@ -176,9 +176,6 @@ class DBSource:
             date:   date
         }
         '''
-        print '-------------------------------------'
-        print 'saveHtml'
-        print 'save html source'
         strr = 'insert into source_info%d (url, title, date) values("%s", "%s", "%s")' % (self.siteID, info['url'], info['title'], info['date'])
         print strr
         self.cu.execute(strr)
@@ -197,12 +194,18 @@ class DBSource:
         }
         '''
         #save image info
-        strr = "insert into %d_img_info (url, width, height) values ('%s', '%s', '%s')" % (self.siteID, info['url'], info['width'], info['height'])
+        strr = "insert into img_info%d (url, width, height) values ('%s', '%s', '%s')" % (self.siteID, info['url'], info['width'], info['height'])
+        print strr
         self.cu.execute(strr)
-        #save image source
-        strr = "insert into img%d (source) values ('%s')" % (self.siteID, sq.Binary(source))
-        self.cu.execute(strr)
+        self.cu.execute('insert into img%d (source) values (?) '%self.siteID,(sq.Binary(source),))
         self.cx.commit()
+
+    def getImg(self, siteID, imgID):
+        pass
+        strr = "select source from img%d where id=%d" % (siteID, imgID)
+        data = self.cu.execute(strr)
+        print data
+        return data.fetchone()
         
 
 class File:
