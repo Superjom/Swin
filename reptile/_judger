@@ -1,0 +1,45 @@
+from debug import *
+from judger import *
+
+class testJudger:
+    '''
+    judger
+    '''
+    def __init__(self):
+        console("self.__init__()")
+        homeurls = [
+            'http://www.cau.edu.cn',
+            'http://www.baidu.com',
+            'http://www.google.com.hk',
+            'http://www.facebook.com',
+        ]
+        for u in homeurls:
+            print u
+        self.j = Judger(homeurls)
+    
+    def transToStdUrl(self):
+        console("self.transToStdUrl()")
+        print self.j.transToStdUrl('http://www.cau.edu.cn/help/',
+                    './index.php')
+
+    def judgeUrl(self):
+        console("self.judgeUrl()", "judge a url")
+        urls = [
+            './index.html',
+            'http://dd.com/index.php',
+            'http://www.cau.edu.cn/help/index.html',
+            'http://www.facebook.com/index.php',
+            './help/hel.php',
+        ]
+        for url in urls:
+            print url,
+            print self.j.transToStdUrl('http://www.cau.edu.cn', url),
+        
+def debug_Judger():
+    conheader("Judger")
+    j = testJudger()
+    j.transToStdUrl()
+    j.judgeUrl()
+        
+if __name__ == '__main__':
+    debug_Judger()

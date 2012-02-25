@@ -7,7 +7,7 @@ Created on Feb 12, 2012
 '''
 class Judger:
     '''
-    测试url是否合格
+    传入测试到url必须都为绝对地址
     '''
     def __init__(self, home_urls):
         '''
@@ -51,17 +51,4 @@ class Judger:
             return newurl
         return urlparse.urljoin(homeurl, newurl)
 
-if __name__ == "__main__":
-    home_urls = ['http://www.cau.edu.cn', 
-                    'http://www.google.com']
-    j = Judger(home_urls)
-    turl = "./tem/index.php"
-    #url = j.transToStdUrl('http://www.cau.edu.cn/page', turl)
-    #print 'url: ',url
-    siteID = j.judgeUrl('http://www.google.com',turl)
-    print 'siteID',siteID
 
-        
-            
-                
-        

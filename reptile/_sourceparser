@@ -1,0 +1,121 @@
+from sourceparser import *
+from debug import *
+
+htmlsource = '''
+    <html>
+        <head>
+            <title>a title</title>
+        </head>
+        <body>
+            <p>1p</p>
+            <a href='/index.php'>1 a</a>
+            <a href='/head.php'>2 a</a>
+            <a href='/world.php'>3 a</a>
+            <b>1 b</b>
+            <b>2 b</b>
+            <b>3 b</b>
+            <b>4 b</b>
+            <img src="beauty.jpg"/>
+            <img src="boy.jpg"/>
+            <img src="forest.jpg"/>
+        </body>
+    </html>
+'''
+
+class testHtmlParser:
+    def __init__(self):
+        console("self.__init__()", "init htmlsource")
+        self.h = HtmlParser()
+        print 'init', self.h.init(htmlsource)
+
+    def getNodeText_List(self):
+        console("self.getNodeText_List()", "get node tests")
+        print self.h.getNodeText_List('b')
+
+    def getALink_list(self):
+        console("self.getALink_list()", "get links")
+        print self.h.getALink_list()
+
+    def getPicSrcs_List(self):
+        console("self.getPicSrcs_List()", "get pics")
+        print self.h.getPicSrcs_List()
+
+def debug_HtmlParser():
+    conheader("HtmlParser")
+    t = testHtmlParser()
+    t.getNodeText_List()
+    t.getALink_list()
+    t.getPicSrcs_List()
+    hr()
+
+class testPicParser:
+    def __init__(self):
+        console("self.__init__()", "init")
+        self.p = PicParser()
+        f = open('1.jpg', 'r')
+        c = f.read()
+        f.close()
+        self.p.init(c)
+
+    def getSize(self):
+        console("self.getSize()", "get size of img")
+        print self.p.getSize()
+
+    def getCompressSize(self):
+        console("self.getCompressedSize()", "get size of compressed img")
+        print self.p.getCompressSize()
+
+    def getCompressedPic(self):
+        console("self.compressedPic()", "")
+        print self.p.getCompressedPic()
+
+def debug_PicParser():
+    conheader("PicParser")
+    p = testPicParser()
+    p.getSize()
+    p.getCompressSize()
+    p.getCompressedPic()
+
+#----------------------------------------------------------
+class testCollector:
+    def __init__(self):
+        homeurls = [
+            'http://www.cau.edu.cn',
+            'http://www.baidu.com',
+            'http://www.google.com.hk',
+            'http://www.facebook.com',
+        ]
+        console("self.__init__()")
+        self.c = Collector(homeurls)
+
+    def init(self):
+        console("self.init()")
+        console("self.init()")
+        f = open('hello.html', 'r')
+        c = f.read()
+        f.close()
+        self.c.init(c)
+
+    def clear_other_node(self):
+        console("self.clear_other_node()")
+
+    def transXml(self):
+        console("self.transXml()")
+        print (self.c.transXml_Str('http://www.cau.edu.cn')).toprettyxml()
+
+def debug_Collector():
+    conheader("Collector")
+    c = testCollector()
+    c.init()
+    c.clear_other_node()
+    c.transXml()
+        
+
+if __name__ == '__main__':
+    #debug_HtmlParser()
+    #debug_PicParser()
+    debug_Collector()
+
+
+
+

@@ -25,12 +25,15 @@
 # 02110-1301 USA
 ######################### END LICENSE BLOCK #########################
 
-import Queue
+import Queue as Q
 
 class List(list):
     'the runtime list for all the url list'
     def find(self, url):  
-        
+        '''
+        用法：
+            li.find('./index.php')
+        '''
         l = len(self)  
         first = 0  
         end = l - 1  
@@ -92,10 +95,11 @@ class Urlist:
         for i in range(self.siteNum):
             print '-'*50
             print self.list[i].show()
+
 #get() 超时时间
 TIMEOUT = 3
 
-class Queue(Queue.Queue):
+class Queue(Q.Queue):
     '''
     url队列
     '''
@@ -106,6 +110,7 @@ class Queue(Queue.Queue):
             home_url
             相对地址唯一标志一个url
         '''
+        Q.Queue.__init__(self)
         self.siteID = -1
         
     def init(self, siteID):
@@ -113,8 +118,8 @@ class Queue(Queue.Queue):
 
 MAX = 100
 class UrlQueue:
-    def __init__(self, home_urls):
-        self.siteNum = len(home_urls)
+    def __init__(self, siteNum):
+        self.siteNum = siteNum
         self.queue = []
         #统一记录每个Queue的长度
         self.qsize = []
@@ -125,9 +130,8 @@ class UrlQueue:
             q = Queue()
             q.init(i)
             self.queue.append(q)
-            self.qsize.append(0)
     
-    def size(self, siteID):
+    def getSize(self, siteID):
         return self.queue[siteID].qsize()
     
     def __get_right_siteID(self):
@@ -137,38 +141,37 @@ class UrlQueue:
         maxn = 0
         max_index = 0
         size = 0
-        while (self.size(self.__index) < MAX):
-            '''
-            遍历
-            '''
-            self.__index += 1
-            size = self.size(self.__index)
-            if self.size(self.__index) > maxn:
-                maxn = self.size(self.__index)
-                max_index = self.__index
+        for i,q in enumerate(self.queue):
+            size = q.qsize()
+            if size > maxn:
+                maxn = size
+                max_index = i
         return (max_index, maxn)
 
-    def put(self, siteID, title, url):
-        self.queue[siteID].put([title, url])
+    def put(self, siteID, title, path):
+        self.queue[siteID].put([title, path])
 
     def get(self, siteID):
         '''
         如果数据池为空超过 3 s 
         则引发 Queue.empty 错误
         '''
-        return self.queue[siteID].get(timeout = 3)
+        return self.queue[siteID].get(timeout = 2)
     
     def getUrlList(self, maxsize):
         '''
         从候选队列中选出一个最合适的队列 取出一定量的list
         '''
-        idx = self.__find_right_index()
-        size = self.size(idx)
+        qinfo = self.__get_right_siteID()
+        idx = qinfo[0]
+        size = qinfo[1]
+        print 'find the right idx:',idx
         if size == 0:
             return False
         if size > maxsize:
             size = maxsize
         ulist = []
+        print 'get size',size
         for i in range(size):
             ulist.append(self.get(idx))
         res = {}
@@ -178,25 +181,9 @@ class UrlQueue:
     
     def show(self):
         print 'show queue'
-        for i in range(self.siteNum):
+        size = 0
+        for q in self.queue:
             print '-'*50
-            self.queue[i].show()
-
-
-if __name__ == '__main__':
-    home_url_list = [
-                'http://www.cau.edu.cn',
-                'http://www.google.com',
-    ]
-    siteNum = len(home_url_list)
-    l = Urlist(siteNum)
-    q = UrlQueue(siteNum)
-
-    l1 = List()
-    l1.find("tem/index")
-    l1.find("hel/index")
-    l1.find("a.index")
-    l1.find("a.index")
-    l1.find("dsfsdfsd")
-    l1.find("dfsfs")
-    l1.show()
+            size = q.qsize()
+            for i in range(size):
+                print q.get()

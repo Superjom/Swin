@@ -38,7 +38,28 @@ class Configure:
     def __init__(self):
         self.cp = ConfigParser()
         self.cp.read("reptile.conf")
+        self.section = None
+#-------------------------------------------------------------
+    def init(self, section):
+        '''
+        set the seciton
+        '''
+        self.section = section
+    
+    def set(self,option, value):
+        '''
+        设定属性值
+        '''
+        self.cp.set(self.section, option, value)
 
+    def get(self,option):
+        '''
+        取得属性值
+        '''
+        return self.cp.get(self.section, option)
+
+    def getint(self, option):
+        return self.cp.getint(self.section, option)
     #----------reptile-------------------------
     def getTimeOut(self):
         '''
@@ -95,5 +116,6 @@ class Configure:
 
 if __name__ == '__main__':
     c = Configure()    
-    print c.getDBPath()
+    c.init("PicParser")
+    print c.get("max_width")
 

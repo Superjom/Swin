@@ -1,0 +1,147 @@
+# -*- coding: utf-8 -*-
+from List import *
+from debug import *
+print '##################################################'
+print 'debug List.py'
+print '##################################################'
+
+class testList:
+    def __init__(self):
+        console('self.__init__', 'List()')
+        self.list = List()
+
+    def find(self, urlist=[
+            './index.html',
+            './hello.html',
+            './hello.html',
+            './tab/index.php',]
+    ):
+        '''
+        find test
+        '''
+        console('self.find', 'find a list')
+        for url in urlist:
+            print url, self.list.find(url)
+
+    def show(self):
+        console('self.show', 'show the list')
+        self.list.show()
+
+def List_debug():
+    '''
+    List
+    '''
+    conheader('class List')
+    li = testList()
+    li.find()
+    li.show()
+
+#----------------------------------------------------------
+class testUrlist:
+    def __init__(self):
+        console('self.__init__', 'List()')
+        self.siteNum = 5
+        self.urlist = Urlist(self.siteNum)
+
+    def find(self):
+        '''
+        find test
+        '''
+        console('self.__init__', 'List()')
+        print self.urlist.find(1,'./hello')
+        print self.urlist.find(2,'./index')
+        print self.urlist.find(2,'./index')
+        print self.urlist.find(1,'./index')
+        print self.urlist.find(3,'./index')
+
+    def show(self):
+        self.urlist.show()
+    
+
+def Urlist_debug():
+    conheader("class Urlist")
+    u = testUrlist()
+    u.find()
+    u.show()
+
+#----------------------------------------------------------
+class testQueue:
+    def __init__(self):
+        self.q = Queue()
+
+    def init(self):
+        console('self.init', 'init the siteID')
+        self.q.init(1)
+
+    def append(self, title = 'hello world', path = './hello.php'):
+        console("self.put()", "put a data")
+        self.q.put([title, path])
+
+    def show(self):
+        console("self.show()", "show what the queue contains")
+        while(not self.q.empty()):
+            print self.q.get()
+
+def Queue_debug():
+    conheader("class Queue")
+    q = testQueue()
+    q.init()
+    q.append()
+    q.append(title="cau", path="./index.php")
+    q.show()
+
+#----------------------------------------------------------
+class testUrlQueue:
+    def __init__(self):
+        console("self.__init__()", "")
+        self.siteNum = 5
+        self.u = UrlQueue(self.siteNum)
+
+    def size(self):
+        console("self.size()", "get size of every queue")
+        for i in range(self.siteNum):
+            print '%d size: %d' % (i, self.u.getSize(i))
+
+    def put(self):
+        console("self.put()", "put a data to a queue")
+        self.u.put(1, 'cau','./index.html')
+        self.u.put(2, 'cau','./index.html')
+        self.u.put(1, 'cau','./index.html')
+        self.u.put(1, 'cau','./index.html')
+        self.u.put(1, 'cau','./index.html')
+        self.u.put(1, 'cau','./index.html')
+        self.u.put(2, 'cau','./index.html')
+        self.u.put(2, 'cau','./index.html')
+        self.u.put(2, 'cau','./index.html')
+        self.u.put(2, 'cau','./index.html')
+
+    def get(self):
+        console("self.get(1)", "get a data")
+        print self.u.get(1)
+
+    def getUrlList(self):
+        console("self.getUrlList()", "get the right list")
+        print self.u.getUrlList(10)
+
+    def show(self):
+        console("self.show()", "show every queue")
+        self.u.show()
+
+def UrlQueue_debug():
+    '''
+    UrlQueue
+    '''
+    conheader("class UrlQueue")
+    u = testUrlQueue()
+    u.size()
+    u.put()
+    u.get()
+    u.getUrlList()
+    u.show()
+
+if __name__ == '__main__':
+    #List_debug()
+    #Urlist_debug()
+    #Queue_debug()
+    UrlQueue_debug()
+    

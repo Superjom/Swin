@@ -286,6 +286,7 @@ class ReptileRun:
         #新建 queue  in_queue list
         self.urlist = Urlist()
         for i in range(len(home_list)):
+            pass
 
 
     def halt(self):
@@ -320,7 +321,6 @@ class ReptileRun:
         pass
 
 
-
 if __name__ == '__main__':
     home_urls = [
         "http://www.cau.edu.cn",
@@ -332,7 +332,7 @@ if __name__ == '__main__':
 
     queue = Queue()
     queue.init(0)
-    queue.append("cau","http://www.cau.edu.cn")
+    queue.put(["cau","http://www.cau.edu.cn"])
 
     name = "reptile"
     Flock = threading.RLock()  
