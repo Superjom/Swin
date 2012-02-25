@@ -201,7 +201,6 @@ class DBSource:
         self.cx.commit()
 
     def getImg(self, siteID, imgID):
-        pass
         strr = "select source from img%d where id=%d" % (siteID, imgID)
         data = self.cu.execute(strr)
         print data
@@ -248,39 +247,5 @@ class File:
         save other files including pdf word
         '''
         pass
-
-if __name__ == '__main__':
-    '''
-    d = DBConfig()
-    home_urls = [
-        {'name':'cau',
-         'url':'http://www.cau.edu.cn'
-        },
-        {
-        'name':'baidu',
-        'url':'http://www.baidu.com'
-        }
-    ]
-    d.init(home_urls)
-    d.initConfig()
-    d.initSites()
-    '''
-
-    c = DBSource()
-    c.init(0)
-    info = {
-        'url':"www.cau.edu.cn",
-        'title':"i你好，我就是试试啊",
-        'date':"2012-02-12",
-    }
-    source = "<html><b>hello world</b></html>"
-    parsedSource = "<html><b>right parsedSource</html>"
-    c.saveHtml(info, source, parsedSource)
-    
-    
-    
-    
-
-
 
 

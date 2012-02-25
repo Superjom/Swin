@@ -186,4 +186,5 @@ class UrlQueue:
             print '-'*50
             size = q.qsize()
             for i in range(size):
-                print q.get()
+                u = q.get() 
+                print u[0],u[1]

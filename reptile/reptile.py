@@ -33,9 +33,7 @@ Created on Feb 12, 2012
 import os
 import threading  
 import time  
-import urllib2  
 import StringIO  
-import gzip  
 import string  
 import chardet
 import httplib
@@ -51,9 +49,9 @@ from List import Queue
 
 from sourceparser import HtmlParser
 from sourceparser import PicParser
+from sourceparser import Collector
 
 from iofile import DBSource
-from iofile import Collector
 #-------------------------------------------------------------
 
 '''
@@ -93,7 +91,8 @@ class Reptile:
         self.__home_urls = home_urls
         #强制刷新 DNS
         self.__tem_siteID = -1
-        self.__siteID = tem_siteID
+        #引用传递 方便进行对照
+        self.__tem_siteID = tem_siteID
         #----------------------------------------------------------------
         self.__Flock = Flock
         self.__htmlparser = HtmlParser()
@@ -101,11 +100,11 @@ class Reptile:
         self.__judger = Judger(self.__home_urls)
         #init temporary home_url and siteID
         #both to determine weather to refresh DNS cache
-        #引用传递 方便进行对照
         self.__dbsource = DBSource()
-        self.__collector = Collector()
+        self.__collector = Collector(home_urls)
 
     def init(self, siteID):
+        print 'siteID',siteID
         self.siteID = siteID
         self.__dbsource.init(siteID)
         self.__url_queue.init(siteID)
@@ -115,17 +114,20 @@ class Reptile:
         包含刷新DNS功能
         siteID引用传入  检测DNS改变
         '''
-        if self.__tem_siteID != self.__siteID[0]:
+        if self.siteID != self.__tem_siteID[0]:
             '''
             更新DNS
             '''
-            self.__tem_siteID = self.__siteID[0]
-            netloc = (urlparse.urlsplit(self.__home_urls[self.__tem_siteID])).netloc
+            self.siteID = self.__tem_siteID[0]
+            netloc = (urlparse.urlsplit(self.__home_urls[self.__tem_siteID[0]])).netloc
             print 'netloc',netloc
             self.__conn = httplib.HTTPConnection(netloc, 80, timeout = 10)
         return self.__conn
 
     def transcode(self, source):
+        '''
+        转码 自动转化为utf8
+        '''
         res = chardet.detect(source)
         confidence = res['confidence']
         encoding = res['encoding']
@@ -140,14 +142,17 @@ class Reptile:
         运行主程序
         '''
         while(True):
+            #[title, path]
             urlinfo = self.getAUrl()
-            if not len(urlinfo):
+            if not urlinfo:
                 print "No Task\nqueue is empty!"
-                #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!i多线程时需要更多优化
                 return
             source = self.getPage(urlinfo[1])
-            #print source
             if not self.__htmlparser.init(source):
+                '''
+                图片和其他文件单独处理
+                此处不作解析
+                '''
                 continue
             self.saveHtml(urlinfo[1], urlinfo[0])
             imgsrcs = self.getImgUrls()
@@ -209,32 +214,40 @@ class Reptile:
             self.__collector.init(data)
             self.__htmlparser.init(data)
         return data
-        
     
     def getImg(self, path):
         '''
-        img_url    './img/1.jpg'
+        path
+        img_path    './img/1.jpg'
         '''
         return self.requestSource(path)
     
     def getAUrl(self):
-        if self.__url_queue.size() > 0:
-            return self.__url_queue.pop()
-        else:
-            return False
+        return self.__url_queue.get()
     
     def getUrls(self):
         '''
         取得urls
         并且进行判断 
         '''
-        return self.__htmlparser.getALink_Dic()
+        return self.__htmlparser.getALink_list()
     
-    def getImgUrls(self):
+    def getImgSrcs(self):
         '''
         parse html source and return src_list
         '''
         return self.__htmlparser.getPicSrcs_List()
+
+    def addNewQueue(self, path_list):
+        '''
+        外界： 控制服务器传来的新的paths
+        url_list = [
+            ['cau','path'],
+        ]
+        '''
+        #控制刷新
+        for url in path_list:
+            self.__url_queue.put(url)
         
     def addNewInQueue(self, page_url, url_list):
         '''
@@ -253,7 +266,8 @@ class Reptile:
                     not duplicate in url_list
                     '''
                     #将url减少
-                    self.__url_in_queue(siteID, urlinfo[0], path)
+                    self.__url_in_queue.put(siteID, urlinfo[0], path)
+        self.__url_in_queue.show()
 
     def saveHtml(self, url, title):
         '''
@@ -270,6 +284,7 @@ class Reptile:
     def saveImg(self, info, source):
         imgsource = self.picparser.compressedPic(source)
         self.__dbsource.saveImg(info, imgsource)
+
 
 class ReptileRun:
     '''

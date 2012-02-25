@@ -1,0 +1,95 @@
+# -*- coding: utf-8 -*-
+from debug import *
+from reptile import Reptile
+#from threading import Flock
+from List import *
+
+class testReptile:
+    '''
+    对单个爬虫线程进行测试
+    '''
+    def __init__(self):
+        console("self.__init__()") 
+        name = "Reptile thread 1" 
+        url_queue = Queue()
+        url_list = Urlist(8)
+        url_in_queue = UrlQueue(8)
+        home_urls = [
+            'http://www.cau.edu.cn',
+            'http://www.baidu.com',
+            'http://www.google.com',
+        ] 
+        tem_siteID = [0] 
+        flock = None
+        self.r = Reptile(name, url_queue, url_list, url_in_queue, flock, home_urls ,tem_siteID = [0])
+
+    def init(self):
+        console("self.init()")
+        self.r.init(1)
+
+    def conn(self):
+        console("self.conn()")
+        print self.r.conn()
+        self.r.init(2)
+        print self.r.conn()
+
+    def getPage(self):
+        console("self.getPage()") 
+        source = self.r.getPage('/')
+
+    def getImg(self):
+        console("self.getImg()")
+        path = '/home/index.files/cau_45.jpg'
+        print self.r.getImg(path)
+        
+
+    def getUrls(self):
+        console("self.getUrls()")
+        urls = self.r.getUrls()
+        for url in urls:
+            print url[0], url[1]  
+
+    def getImgSrcs(self):
+        console('self.getImgUrls()')
+        srcs = self.r.getImgSrcs()
+        for src in srcs:
+            print src
+
+    def addNewQueue(self):
+        console('self.addNewQueue()')
+        path_list = ['/show.php?id=0000045003']
+        self.r.init(0)
+        self.r.addNewQueue(path_list)
+
+    def addNewInQueue(self):
+        page_url = "http://www.cau.edu.cn/3432342.html" 
+        url_list = [
+            ['百度平台','http://www.baidu.com/index.html'],
+            ['开放的中国农大欢迎您!','http://www.cau.edu.cn/index.html'],
+            ['首页','./index.php'],
+            ['帮助','./help/2342.html'],
+        ] 
+        self.r.addNewInQueue(page_url, url_list)
+
+
+    def getAUrl(self):
+        console('self.getAUrl()')
+        print self.r.getAUrl()
+        
+
+def debug_Reptile():
+    conheader("Reptile")
+    r = testReptile()
+    r.init()
+    #r.conn()
+    r.getPage()
+    #r.getImg()
+    #r.getUrls()
+    #r.getImgSrcs()
+    #r.addNewInQueue()
+    #r.getUrls()
+    r.addNewQueue()
+    r.getAUrl()
+
+if __name__ == '__main__':
+    debug_Reptile()

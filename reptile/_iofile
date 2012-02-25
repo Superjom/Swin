@@ -80,6 +80,9 @@ class testDBSource:
         console("self.saveImg()")
         img = Image.open('1.jpg')
         data = img.tostring()
+        f = open('hello.jpg','wb')
+        f.write(data)
+        f.close()
         size = img.size
         info = {
             'url':'http://www.cau.edu.cn/sdlfjafjassfoiefjewfdslfjsdskfjsdfsfklsfsdljfsfjsdlfjsdlf.jpg',
@@ -101,10 +104,10 @@ def debug_DBSource():
     d = testDBSource()
     d.init()
     #d.saveHtml()
-    #d.saveImg()
+    d.saveImg()
     d.getImg()
 
 
 if __name__ == '__main__':
-    #debug_DBConfig()
+    debug_DBConfig()
     debug_DBSource()
