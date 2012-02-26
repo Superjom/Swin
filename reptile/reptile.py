@@ -38,11 +38,10 @@ import string
 import chardet
 import httplib
 import datetime as datetime
-
 import urlparse
 #-------------------------------------------------------------
 from judger import Judger
-
+from debug import *
 from List import Urlist
 from List import UrlQueue
 from List import Queue
@@ -62,6 +61,7 @@ class Reptile:
     '''
     单个线程
     '''
+    @dec
     def __init__(self, name, url_queue, url_list, url_in_queue, Flock, home_urls ,tem_siteID = [0]):
         '''
         name
@@ -103,14 +103,17 @@ class Reptile:
         self.__dbsource = DBSource()
         self.__collector = Collector(home_urls)
     #------------------------------------------------------
+    @dec
     def init(self, siteID):
-        self.siteID = siteID
+        console('self.init()')
+        self.siteID = -1
+        self.__tem_siteID[0] = siteID
         self.__dbsource.init(siteID)
         self.__url_queue.init(siteID)
-        netloc = self.transNetloc(self.__home_urls[self.__tem_siteID[0]])
+        netloc = self.transNetloc(self.__home_urls[siteID])
         print 'get netloc',netloc
         self.__conn = httplib.HTTPConnection(netloc, 80, timeout = 10)
-    
+    @dec 
     def conn(self):
         '''
         包含刷新DNS功能
@@ -126,7 +129,7 @@ class Reptile:
             print 'netloc',netloc
             self.__conn = httplib.HTTPConnection(netloc, 80, timeout = 10)
         return self.__conn
-
+    
     def transcode(self, source):
         '''
         转码 自动转化为utf8
@@ -139,35 +142,42 @@ class Reptile:
             return False
         else:
             return unicode(source, encoding)
-
+    @dec
     def transPath(self, page_url, path):
         '''
         将任意一个链接转化为 路径
         '''
         url = self.__judger.transToStdUrl(page_url, path)
         return urlparse.urlsplit(url).path
-
+    @dec
     def transNetloc(self, url):
         '''
         传入绝对url  
         '''
         return urlparse.urlsplit(url).netloc
     #-------------------------------------------------------------
-        
+    @dec       
     def run(self):
         '''
         运行主程序
         '''
+        console('self.run()')
+        self.conn()
         home_url = self.__home_urls[self.siteID]
-        print home_url
+        print 'home_url',home_url
         while(True):
             #[title, path]
             urlinfo = self.getAUrl()
+            print 'get urlinfo ',urlinfo
             if not urlinfo:
                 print "No Task\nqueue is empty!"
                 return
+            #全局 页面信息
             page_path = urlinfo[1]
+            page_url = self.__judger.transToStdUrl(home_url, page_path)
+            print 'page_path',page_path
             source = self.getPage(home_url, page_path)
+            print 'get source',source
             #判断是否为html源码
             if not self.__htmlparser.init(source):
                 '''
@@ -176,16 +186,16 @@ class Reptile:
                 '''
                 continue
             #取得绝对地址
-            url = self.__judger.transToStdUrl(home_url, page_path)
+            #url = self.__judger.transToStdUrl(home_url, page_path)
             #url统一存储为绝对地址
             #save html source
-            self.saveHtml(urlinfo[0], page_path)
-            imgsrcs = self.getImgUrls()
+            self.saveHtml(page_url, urlinfo[0])
+            imgsrcs = self.getImgSrcs()
             #save images
-            self.saveImgList(imgsrcs)
-            newurls = self.htmlparser.getALinkText_List()
-            self.AddNewInQueue(self.__cur_pageurl, newurls)
-    
+            self.saveImgList(page_url, imgsrcs)
+            newurls = self.__htmlparser.getALinkText_List()
+            self.addNewInQueue(page_url, newurls)
+    @dec 
     def requestSource(self, path):
         '''
         page_url    子页面 如 ./index.html
@@ -211,47 +221,53 @@ class Reptile:
             return False
         '''
         return data
-    
+    @dec 
     def getPage(self,page_url, url):
         '''
         任意传入url
         将自动转化为path 然后调用底层 requestSource()
         '''
+        console('self.getPage()')
         path = self.transPath(page_url, url)
         data = self.requestSource(path)
+        print 'page_url: url',page_url, url
         if len(data):
             data = self.transcode(data)
-            if not data:
+            print 'data',data
+            if not len(data):
                 return False
             if not self.__collector.init(data):
+                print 'collector.init',
                 return False
-            self.__htmlparser.init(data)
+            #self.__htmlparser.init(data)
+            self.__htmlparser = self.__collector.htmlparser
         return data
-    
+    @dec    
     def getImg(self,page_url, url):
         '''
         path
         img_path    './img/1.jpg'
+        返回 [绝对url, source]
         '''
-        path = self.transPath(page_url, url)
-        return self.requestSource(path)
-    
+        url = self.transPath(page_url, url)
+        return [url, self.requestSource(url)]
+    @dec    
     def getAUrl(self):
-        return self.__url_queue.get()
-    
+        return self.__url_queue.get(timeout = 3)
+    @dec 
     def getUrls(self):
         '''
         取得urls
         并且进行判断 
         '''
         return self.__htmlparser.getALink_list()
-    
+    @dec 
     def getImgSrcs(self):
         '''
         parse html source and return src_list
         '''
         return self.__htmlparser.getPicSrcs_List()
-
+    @dec
     def addNewQueue(self, path_list):
         '''
         外界： 控制服务器传来的新的paths
@@ -262,7 +278,7 @@ class Reptile:
         #控制刷新
         for url in path_list:
             self.__url_queue.put(url)
-        
+    @dec    
     def addNewInQueue(self, page_url, url_list):
         '''
         url直接为原始的url   不需要另外进行处理
@@ -282,13 +298,14 @@ class Reptile:
                     #将url减少
                     self.__url_in_queue.put(siteID, urlinfo[0], path)
         self.__url_in_queue.show()
-
-    def saveHtml(self, path, title):
+    @dec
+    def saveHtml(self, url, title):
         '''
         存储 source 和 parsedsource to database
         '''
         #得到绝对url
-        url = self.__judger.transToStdUrl(self.__home_urls[self.__siteID], path)
+        assert self.siteID != -1
+        #url = self.__judger.transToStdUrl(self.__home_urls[self.siteID], path)
         today = datetime.date.today()
         info = {
             'title' :   title,
@@ -297,24 +314,28 @@ class Reptile:
         }
         self.__dbsource.saveHtml(info, self.__collector.html, self.__collector.transXml_Str(url))
 
-    def saveImg(self, info, source):
-        imgsource = self.picparser.compressedPic(source)
-        self.__dbsource.saveImg(info, imgsource)
+    def saveImg(self, url, source):
+        imgsource = self.__picparser.getCompressedPic()
+        size = imgsource['size']
+        source = imgsource['source']
+        info = {
+            'url':url,
+            'width':size[0],
+            'height':size[1]
+        }
+        self.__dbsource.saveImg(info, source)
 
-    def saveImgList(self, srcs):
+    def saveImgList(self, page_url, srcs):
         '''
+        传入绝对src
         传入 srcs 系列存储
         '''
         for src in srcs:
-            imgsource = self.getImg(src)
-            self.picparser.init(imgsource)
-            size = self.picparser.getSize()
-            info = {
-                'url':src,
-                'width':size[0],
-                'height':size[1]
-            }
-            self.saveImg(info, imgsource)
+            imgsource = self.getImg(page_url, src)
+            url = imgsource[0]
+            source = imgsource[1]
+            self.__picparser.init(source)
+            self.saveImg(url, imgsource)
 
 
 
@@ -322,19 +343,27 @@ class ReptileRun:
     '''
     线程主控制程序
     负责爬取任务
+    对 halt 和 resume 提供接口
+    并且调用 halt 和 resume 接口
     '''
     def __init__(self):
-        pass
+        self.urlist = Urlist()
+        self.queue = Queue()
+        self.in_queue = UrlQueue()
 
     def init(self,home_list, reptile_num):
         '''
         所有动态初始化过程 
         '''
         #新建 queue  in_queue list
-        self.urlist = Urlist()
-        for i in range(len(home_list)):
-            pass
+        home_num = len(home_list)
+        self.urlist.init(home_num)
+        self.in_queue.init(home_num)
 
+    def initReptileThread(self):
+        self.reptiles = []
+        for i in range(self.home_num):
+            pass
 
     def halt(self):
         '''
@@ -368,33 +397,4 @@ class ReptileRun:
         pass
 
 
-if __name__ == '__main__':
-    home_urls = [
-        "http://www.cau.edu.cn",
-        "http://www.baidu.com"
-    ]
-    home_num = len(home_urls)
-    l = Urlist(home_num)
-    q = UrlQueue(home_urls)
-
-    queue = Queue()
-    queue.init(0)
-    queue.put(["cau","http://www.cau.edu.cn"])
-
-    name = "reptile"
-    Flock = threading.RLock()  
-    print 'home_url >',home_urls[0]
-
-    home_url = home_urls[0]
-    print home_url
-
-    tem_siteID = [0]
-
-    r = Reptile(name, queue, l, q, Flock, home_urls, tem_siteID)
-    r.init(0)
-    print r.getPage('/')
-    urls = r.getUrls()
-    print urls
-    print r.getImgUrls()
-    r.addNewInQueue('http://www.cau.edu.cn','开放的中国农业大学欢迎您!','/')
 

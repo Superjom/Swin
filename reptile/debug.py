@@ -1,5 +1,13 @@
 # -*- coding: utf-8 -*-
 
+def dec(func):
+    def Function(*args,**kargs):
+        print '<=', args, '=>'
+        print '<<<',func.__name__,'>>>'
+        return func(*args,**kargs)
+    return Function
+
+@dec
 def conheader(name):
     '''
     分割单个类到开头

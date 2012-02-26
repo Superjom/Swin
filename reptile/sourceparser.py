@@ -166,11 +166,13 @@ class Collector:
         显式刷新缓存内容
         '''
         self.html=html
-        self.htmlparser.init(html)
+        if not self.htmlparser.init(html):
+            return False
         self.d = self.htmlparser.d
         self.d=pq(html)
         self.d('script').remove()
         self.d('style').remove()
+        return True
         
     def clear_other_node(self):
         '''

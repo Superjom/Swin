@@ -16,6 +16,7 @@ class testReptile:
         url_in_queue = UrlQueue(8)
         home_urls = [
             'http://www.cau.edu.cn',
+            'http://org.wusetu.cn',
             'http://www.baidu.com',
             'http://www.google.com',
         ] 
@@ -30,7 +31,7 @@ class testReptile:
     def conn(self):
         console("self.conn()")
         print self.r.conn()
-        self.r.init(2)
+        self.r.init(1)
         print self.r.conn()
 
     def transPath(self):
@@ -59,8 +60,11 @@ class testReptile:
 
     def addNewQueue(self):
         console('self.addNewQueue()')
-        path_list = ['/show.php?id=0000045003']
-        self.r.init(0)
+        #http://org.wusetu.cn/hsz/pray/
+        path_list = [
+            ['许愿墙','/hsz/pray/'],
+                ]
+        self.r.init(1)
         self.r.addNewQueue(path_list)
 
     def addNewInQueue(self):

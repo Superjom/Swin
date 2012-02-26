@@ -5,6 +5,10 @@ from PIL import Image
 
 homeurls = [
     {
+    'url':'http://org.wusetu.cn/hsz',
+    'name':'许愿墙',
+    },
+    {
     'url':'http://www.cau.edu.cn',
     'name':'开放的中国农业大学欢迎您!'
     },
@@ -110,4 +114,4 @@ def debug_DBSource():
 
 if __name__ == '__main__':
     debug_DBConfig()
-    debug_DBSource()
+    #debug_DBSource()
