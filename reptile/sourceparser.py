@@ -253,6 +253,6 @@ class Collector:
         cc.appendChild(ctext)
         html.appendChild(cc)
         #print self.dd.toprettyxml()
-        return html
+        return html.toxml()
 
 

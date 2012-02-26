@@ -22,7 +22,7 @@ class testReptile:
         tem_siteID = [0] 
         flock = None
         self.r = Reptile(name, url_queue, url_list, url_in_queue, flock, home_urls ,tem_siteID = [0])
-
+    #------------------------------------------------------
     def init(self):
         console("self.init()")
         self.r.init(1)
@@ -33,6 +33,9 @@ class testReptile:
         self.r.init(2)
         print self.r.conn()
 
+    def transPath(self):
+        print self.r.transPath('http://www.cau.edu.cn/help/guest/hl.htm', '../index.php')
+    #------------------------------------------------------
     def getPage(self):
         console("self.getPage()") 
         source = self.r.getPage('/')
@@ -41,7 +44,6 @@ class testReptile:
         console("self.getImg()")
         path = '/home/index.files/cau_45.jpg'
         print self.r.getImg(path)
-        
 
     def getUrls(self):
         console("self.getUrls()")
@@ -71,25 +73,29 @@ class testReptile:
         ] 
         self.r.addNewInQueue(page_url, url_list)
 
-
     def getAUrl(self):
         console('self.getAUrl()')
         print self.r.getAUrl()
-        
+
+    def run(self):
+        console('self.run()')
+        self.r.run()
 
 def debug_Reptile():
     conheader("Reptile")
     r = testReptile()
     r.init()
     #r.conn()
-    r.getPage()
+    #r.transPath()
+    #r.getPage()
     #r.getImg()
     #r.getUrls()
     #r.getImgSrcs()
     #r.addNewInQueue()
     #r.getUrls()
     r.addNewQueue()
-    r.getAUrl()
+    #r.getAUrl()
+    r.run()
 
 if __name__ == '__main__':
     debug_Reptile()

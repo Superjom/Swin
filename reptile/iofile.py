@@ -173,7 +173,7 @@ class DBSource:
         info = {
             url:    urlstr,
             title:  titlestr,
-            date:   date
+            date:   date #爬取的日期
         }
         '''
         strr = 'insert into source_info%d (url, title, date) values("%s", "%s", "%s")' % (self.siteID, info['url'], info['title'], info['date'])
