@@ -338,8 +338,6 @@ class Reptile(threading.Thread):
             self.__picparser.init(source)
             self.saveImg(url, imgsource)
 
-
-
 class ReptileLib:
     '''
     线程库
