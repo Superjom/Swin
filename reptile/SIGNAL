@@ -42,6 +42,13 @@
         <url title='hello world' url='./hello_world.html'>
     </data>
 </signal>
+解析成的python数据格式：
+    ['signaltype', [
+            [title, url],
+            [title, url],
+            [title, url],
+        ]
+    ]
 
 
 操作序列
@@ -51,6 +58,8 @@ init:
     CentreServ向平台发送url任务
     各平台开始运行
     
+爬虫控制信号----------------------------------------------------
+'halt' 中断信号 所有线程停止运行
 
 
 

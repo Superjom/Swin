@@ -57,7 +57,7 @@ from iofile import DBSource
 新特性：
     从urlib2 更替为 httplib 一次分配一个站点的爬取任务 重复利用DNS缓存
 '''
-class Reptile:
+class Reptile(threading.Thread):
     '''
     单个线程
     '''
@@ -75,7 +75,7 @@ class Reptile:
         tem_home_url    
         old_home_url    引用传递
         '''
-        #threading.Thread.__init__(self, name = name )  
+        threading.Thread.__init__(self, name = name )  
         #本地测试url队列 如果在本地重复 则直接舍弃
         #如果不重复 加入临时队列 将来传输到中央服务器进行测试
         #为每个站点分配了一个list对象 分开进行url的分辨
@@ -318,6 +318,7 @@ class Reptile:
         imgsource = self.__picparser.getCompressedPic()
         size = imgsource['size']
         source = imgsource['source']
+        print 'source',source
         info = {
             'url':url,
             'width':size[0],
@@ -339,12 +340,11 @@ class Reptile:
 
 
 
-class ReptileRun:
+class ReptileLib:
     '''
-    线程主控制程序
+    线程库
     负责爬取任务
     对 halt 和 resume 提供接口
-    并且调用 halt 和 resume 接口
     '''
     def __init__(self):
         self.urlist = Urlist()
@@ -357,13 +357,67 @@ class ReptileRun:
         '''
         #新建 queue  in_queue list
         home_num = len(home_list)
+        #线程个数
+        self.reptile_num = reptile_num
         self.urlist.init(home_num)
         self.in_queue.init(home_num)
 
-    def initReptileThread(self):
+    def reptilesRun(self):
+        '''
+        所有线程开始运行
+        '''
         self.reptiles = []
-        for i in range(self.home_num):
-            pass
+        for i in range(self.reptile_num):
+            t = Reptile()
+            self.reptiles.append(t)
+        for t in self.reptiles:
+            t.start()
+
+class ReptileCtrlRcv:
+    '''
+    爬虫控制线程  掌控一些公共信息 以作备份等
+    接受信号 并作相应操作
+    其属于ReptileLib 可以直接操作主程序
+    与clientServ进程通过Queue实现交流
+    可以在ReptileLib的爬虫线程运行前设置好环境
+    Queue传输消息:
+        [signal,[url,url,url]]
+    '''
+    def __init__(self, url_queue, url_list, url_in_queue, Flock, tem_siteID = [0]):
+        '''
+        '''
+        self.url_queue = url_queue
+        self.url_list = url_list
+        self.url_in_queue = url_in_queuen
+        self.flock = Flock
+        self.tem_siteID = tem_siteID 
+
+    def parseSignal(self, signal):
+        '''
+        中央程序 为相关signal调用一定的方法处理
+        '''
+        pass
+
+    def recvNewUrls(self, signal):
+        '''
+        从CentreSev得到新的urls
+        插入到ReptileLib的公共数据中
+        signal = ['signaltype',
+                  siteID,
+                  [
+                    [title, url],
+                    [title, url],
+                    [title, url],
+                  ]
+                ]
+        '''
+        self.tem_siteID[0] = int(signal[1])
+        url_list = signal[2]
+        for u in url_list:
+            '''
+            添加每个url如 url_queue
+            '''
+            self.url_queue.put(u)
 
     def halt(self):
         '''
@@ -396,5 +450,6 @@ class ReptileRun:
         '''
         pass
 
+    
 
 
