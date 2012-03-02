@@ -77,6 +77,12 @@ class List(list):
             url = self[i]
             print hash(url),'__',url
 
+    def getAll(self):
+        '''
+        取得所有信息 便于中断操作
+        '''
+        return self
+
 class Urlist:
     def __init__(self, siteNum):
         self.siteNum = siteNum
@@ -95,6 +101,9 @@ class Urlist:
         for i in range(self.siteNum):
             print '-'*50
             print self.list[i].show()
+
+    def getAll(self):
+        return self.list
 
 #get() 超时时间
 TIMEOUT = 3
@@ -116,6 +125,29 @@ class Queue(Q.Queue):
     def init(self, siteID):
         self.__siteID = siteID
 
+    def getAll(self):
+        '''
+        返回所有信息
+        [
+            siteID,
+            [
+                ['title', 'url'],
+                ['title', 'url'],
+                ['title', 'url'],
+            ]
+        ]
+        '''
+        res = []
+        urls = []
+        res.append(self.siteID]
+        res.append(urls)
+        try:
+            q = self.get_nowait()
+            urls.append(q)
+        except:
+            pass
+        return res
+
 MAX = 100
 class UrlQueue:
     def __init__(self, siteNum):
@@ -133,6 +165,15 @@ class UrlQueue:
     
     def getSize(self, siteID):
         return self.queue[siteID].qsize()
+
+    def getAll(self):
+        '''
+        从queue中取出所有信息
+        '''
+        res = []
+        for queue in self.queue:
+            res.append(queue.getAll())
+        return res
     
     def __get_right_siteID(self):
         '''

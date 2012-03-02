@@ -9,6 +9,41 @@
             "name" CHAR NOT NULL , 
             "date" DATETIME NOT NULL 
         );
+    中断后的内存中的信息存储
+    flag:
+        id | info
+        利用xml存储
+        <flag>
+            <url_queue siteID=0>
+                <item title="title" url="url"/>
+                <item title="title" url="url"/>
+                ...
+            </url_queue>
+            <url_list>
+                <list>
+                    <item url="url"/>
+                    <item url="url"/>
+                </list>
+                <list>
+                    <item url="url"/>
+                    <item url="url"/>
+                </list>
+                ...
+            </url_list>
+            <url_in_queue>
+                <queue>
+                    <item title="title" url="url"/>
+                    <item title="title" url="url"/>
+                    ...
+                </queue>
+                <queue>
+                    <item title="title" url="url"/>
+                    <item title="title" url="url"/>
+                    ...
+                </queue>
+            </url_in_queue>
+        </flag>
+        
 
     如：
         1_source_info
@@ -17,6 +52,7 @@
         1_img_source
     #htmlinfo and htmlsource is one-to-one conresponding
 
+    
     sites:
     source_info:
         docID   url     title       date
@@ -30,5 +66,6 @@
         CREATE TABLE "1_img_info" ("id" INTEGER PRIMARY KEY  NOT NULL , "url" CHAR, "width" INTEGER, "height" INTEGER)
     img:
         id      source
+
 
 

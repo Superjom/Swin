@@ -45,6 +45,7 @@ from debug import *
 from List import Urlist
 from List import UrlQueue
 from List import Queue
+from pyquery import PyQuery as pq
 
 from sourceparser import HtmlParser
 from sourceparser import PicParser
@@ -62,7 +63,7 @@ class Reptile(threading.Thread):
     单个线程
     '''
     @dec
-    def __init__(self, name, url_queue, url_list, url_in_queue, Flock, home_urls ,tem_siteID = [0]):
+    def __init__(self, name, url_queue, url_list, url_in_queue, Flock, home_urls ,tem_siteID = [0], continue_run = [True]):
         '''
         name
         url_queue       从主服务器中分配到的url
@@ -74,6 +75,7 @@ class Reptile(threading.Thread):
         is_new_task     通过引用传递 由communitor修改  以判断是否需要修改
         tem_home_url    
         old_home_url    引用传递
+        continue_run[]  是否继续运行的标志
         '''
         threading.Thread.__init__(self, name = name )  
         #本地测试url队列 如果在本地重复 则直接舍弃
@@ -166,6 +168,9 @@ class Reptile(threading.Thread):
         home_url = self.__home_urls[self.siteID]
         print 'home_url',home_url
         while(True):
+            #从外界传入标志 是否继续运行
+            if not continue_run[0]:
+                return 
             #[title, path]
             urlinfo = self.getAUrl()
             print 'get urlinfo ',urlinfo
@@ -360,16 +365,15 @@ class ReptileLib:
         self.urlist.init(home_num)
         self.in_queue.init(home_num)
 
-    def reptilesRun(self):
+    def InitReptiles(self):
         '''
-        所有线程开始运行
+        所有线程初始化
+        由ReptileCtrlRcv控制运行
         '''
         self.reptiles = []
         for i in range(self.reptile_num):
             t = Reptile()
             self.reptiles.append(t)
-        for t in self.reptiles:
-            t.start()
 
 class ReptileCtrlRcv:
     '''
@@ -381,14 +385,18 @@ class ReptileCtrlRcv:
     Queue传输消息:
         [signal,[url,url,url]]
     '''
-    def __init__(self, url_queue, url_list, url_in_queue, Flock, tem_siteID = [0]):
+    def __init__(self, reptiles=[], url_queue, url_list, url_in_queue, Flock, tem_siteID=[0], continue_run=[True]):
         '''
         '''
+        #爬虫子线程 由本类控制运行
+        self.reptiles = reptiles
         self.url_queue = url_queue
         self.url_list = url_list
         self.url_in_queue = url_in_queuen
         self.flock = Flock
         self.tem_siteID = tem_siteID 
+        #是否继续运行到标志 让线程退出 修改为[False]
+        self.continue_run = continue_run
 
     def parseSignal(self, signal):
         '''
@@ -421,7 +429,52 @@ class ReptileCtrlRcv:
         '''
         中断操作
         '''
-        pass
+        #---------------sub function--------------------------
+        def trans_to_xml(url_queue_ga, url_list_ga, url_in_queue_ga):
+            '''
+            将相关内存中信息转化为xml
+            '''
+            ht = pq('<flag/>')
+            #url_queue
+            url_queue = pq('<url_queue/>')
+            ht.append(url_queue)
+            url_queue.attr('siteID', url_queue_ga[0])
+            for url in url_queue_ga[1]:
+                item = pq('<item/>')
+                item.attr('title', url[0])
+                item.attr('url', url[1])
+                url_queue.append(item)
+            #url_list
+            url_list = pq('<url_list/>')
+            ht.append(url_list)
+            for urlist in url_list_ga:
+                li = pq('<list/>')
+                url_list.append(li)
+                for url in urlist:
+                    item = pq('<item/>')
+                    item.attr('url',url)
+                    li.append(item)
+            #url_in_queue
+            url_in_queue = pq('<url_queue_ga/>')
+            ht.append(url_in_queue)
+            for queue in url_in_queue_ga
+                qu = pq('<queue/>')
+                url_in_queue.append(qu)
+                for url in queue:
+                    item = pq('<item/>')
+                    qu.append(item)
+                    item.attr('title', url[0])
+                    item.attr('url', url[1])
+        #--------------------------
+        #修改是否继续运行标志
+        self.continue_run[0] = False
+        #存储内存中各种信号
+        url_queue_ga = self.url_queue.getAll()
+        url_list_ga = self.url_list.getAll()
+        url_in_queue_ga = self.url_in_queue.getAll()
+        #开始存储到外存
+
+        
 
     def stop(self):
         '''
@@ -439,6 +492,8 @@ class ReptileCtrlRcv:
     def status(self):
         '''
         返回状态
+        线程数目                reptile_num
+        每个线程下载页面数目    download_page_num
         '''
         pass
 
@@ -446,8 +501,8 @@ class ReptileCtrlRcv:
         '''
         各线程开始运行
         '''
-        pass
+        for t in self.reptiles:
+        t.start()
 
-    
 
 
