@@ -61,6 +61,10 @@ class testDBSource:
         console("self.init()")
         self.d.init(2)
 
+    def saveFlag(self):
+        info = "<flag></flag"
+        self.d.saveFlag(info)
+
     def saveHtml(self):
         console("self.saveHtml()")
         info = {
@@ -107,11 +111,12 @@ def debug_DBSource():
     conheader("DBSource")
     d = testDBSource()
     d.init()
+    d.saveFlag()
     #d.saveHtml()
-    d.saveImg()
-    d.getImg()
+    #d.saveImg()
+    #d.getImg()
 
 
 if __name__ == '__main__':
-    debug_DBConfig()
-    #debug_DBSource()
+    #debug_DBConfig()
+    debug_DBSource()

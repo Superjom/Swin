@@ -78,6 +78,8 @@ class DBConfig:
         '''
         print 'init configure'
         #create configure table
+        print 'init flag'
+        self.__create_flag()
         strr = 'CREATE  TABLE IF NOT EXISTS configure ("siteID" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL , "url" CHAR NOT NULL , "name" CHAR NOT NULL)' 
         self.cu.execute(strr)
         #insert data
@@ -89,6 +91,14 @@ class DBConfig:
             print strr
             self.cu.execute(strr)
             self.cx.commit()
+
+    def __create_flag(self):
+        '''
+        存储中断后内存中的信息
+        '''
+        strr = 'CREATE TABLE IF NOT EXISTS "flag" ("id" INTEGER PRIMARY KEY NOT NULL, "info" TEXT)'
+        print strr
+        self.cu.execute(strr)
 
     def __create_source_info(self, siteID):
         '''
@@ -166,6 +176,16 @@ class DBSource:
         read database connection
         '''
         self.siteID = siteID
+
+    def saveFlag(self, info):
+        '''
+        存储中断后信息
+        '''
+        strr = "delete from flag"
+        self.cu.execute(strr)
+        strr = "insert into flag (info) values('%s')" % info
+        self.cu.execute(strr)
+        self.cx.commit()
 
     def saveHtml(self, info, source, parsed_source):
         '''

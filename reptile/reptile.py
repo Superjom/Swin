@@ -104,6 +104,8 @@ class Reptile(threading.Thread):
         #both to determine weather to refresh DNS cache
         self.__dbsource = DBSource()
         self.__collector = Collector(home_urls)
+        #continue run
+        self.__continue_run = continue_run
     #------------------------------------------------------
     @dec
     def init(self, siteID):
@@ -424,7 +426,7 @@ class ReptileCtrlRcv:
             添加每个url如 url_queue
             '''
             self.url_queue.put(u)
-
+    #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     def halt(self):
         '''
         中断操作
@@ -457,7 +459,7 @@ class ReptileCtrlRcv:
             #url_in_queue
             url_in_queue = pq('<url_queue_ga/>')
             ht.append(url_in_queue)
-            for queue in url_in_queue_ga
+            for queue in url_in_queue_ga:
                 qu = pq('<queue/>')
                 url_in_queue.append(qu)
                 for url in queue:
@@ -502,7 +504,7 @@ class ReptileCtrlRcv:
         各线程开始运行
         '''
         for t in self.reptiles:
-        t.start()
+            t.start()
 
 
 
