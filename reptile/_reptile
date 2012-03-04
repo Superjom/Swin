@@ -22,11 +22,11 @@ class testReptile:
         ] 
         tem_siteID = [0] 
         flock = None
-        self.r = Reptile(name, url_queue, url_list, url_in_queue, flock, home_urls ,tem_siteID = [0])
+        self.r = Reptile(name, url_queue, url_list, url_in_queue, flock, home_urls ,tem_siteID = [0], continue_run=[True])
     #------------------------------------------------------
     def init(self):
         console("self.init()")
-        self.r.init(1)
+        self.r.init(0)
 
     def conn(self):
         console("self.conn()")
@@ -62,9 +62,10 @@ class testReptile:
         console('self.addNewQueue()')
         #http://org.wusetu.cn/hsz/pray/
         path_list = [
-            ['许愿墙','/hsz/pray/'],
+            ['中国农业大学欢迎您！','/'],
+            ['农业发展研究会','nyh/'],
                 ]
-        self.r.init(1)
+        self.r.init(0)
         self.r.addNewQueue(path_list)
 
     def addNewInQueue(self):
@@ -99,6 +100,7 @@ def debug_Reptile():
     #r.getUrls()
     r.addNewQueue()
     #r.getAUrl()
+    #r.run()
     r.run()
 
 if __name__ == '__main__':

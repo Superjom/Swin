@@ -39,6 +39,7 @@ import chardet
 import httplib
 import datetime as datetime
 import urlparse
+import re
 #-------------------------------------------------------------
 from judger import Judger
 from debug import *
@@ -62,7 +63,6 @@ class Reptile(threading.Thread):
     '''
     单个线程
     '''
-    @dec
     def __init__(self, name, url_queue, url_list, url_in_queue, Flock, home_urls ,tem_siteID = [0], continue_run = [True]):
         '''
         name
@@ -141,11 +141,15 @@ class Reptile(threading.Thread):
         res = chardet.detect(source)
         confidence = res['confidence']
         encoding = res['encoding']
+        p = re.compile("&#(\S+);")
+        source = p.sub("",source)
         print 'transcode', res
+        if encoding == 'utf-8':
+            return source
         if confidence < 0.6:
             return False
         else:
-            return unicode(source, encoding)
+            return unicode(source, encoding, 'ignore')
     @dec
     def transPath(self, page_url, path):
         '''
@@ -171,7 +175,8 @@ class Reptile(threading.Thread):
         print 'home_url',home_url
         while(True):
             #从外界传入标志 是否继续运行
-            if not continue_run[0]:
+            #实现中断或者停止
+            if not self.__continue_run[0]:
                 return 
             #[title, path]
             urlinfo = self.getAUrl()
@@ -184,7 +189,6 @@ class Reptile(threading.Thread):
             page_url = self.__judger.transToStdUrl(home_url, page_path)
             print 'page_path',page_path
             source = self.getPage(home_url, page_path)
-            print 'get source',source
             #判断是否为html源码
             if not self.__htmlparser.init(source):
                 '''
@@ -196,6 +200,7 @@ class Reptile(threading.Thread):
             #url = self.__judger.transToStdUrl(home_url, page_path)
             #url统一存储为绝对地址
             #save html source
+            print 'saveHtml'+'-'*200
             self.saveHtml(page_url, urlinfo[0])
             imgsrcs = self.getImgSrcs()
             #save images
@@ -240,7 +245,7 @@ class Reptile(threading.Thread):
         print 'page_url: url',page_url, url
         if len(data):
             data = self.transcode(data)
-            print 'data',data
+            #print 'data',data
             if not len(data):
                 return False
             if not self.__collector.init(data):
@@ -325,7 +330,7 @@ class Reptile(threading.Thread):
         imgsource = self.__picparser.getCompressedPic()
         size = imgsource['size']
         source = imgsource['source']
-        print 'source',source
+        #print 'source',source
         info = {
             'url':url,
             'width':size[0],
@@ -387,7 +392,7 @@ class ReptileCtrlRcv:
     Queue传输消息:
         [signal,[url,url,url]]
     '''
-    def __init__(self, reptiles=[], url_queue, url_list, url_in_queue, Flock, tem_siteID=[0], continue_run=[True]):
+    def __init__(self, reptiles, url_queue, url_list, url_in_queue, Flock, tem_siteID, continue_run):
         '''
         '''
         #爬虫子线程 由本类控制运行

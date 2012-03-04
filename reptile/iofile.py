@@ -196,12 +196,14 @@ class DBSource:
             date:   date #爬取的日期
         }
         '''
-        strr = 'insert into source_info%d (url, title, date) values("%s", "%s", "%s")' % (self.siteID, info['url'], info['title'], info['date'])
-        print strr
+        print '-'*200
+        strr = "insert into source_info%d (url, title, date) values('%s', '%s', '%s')" % (self.siteID, info['url'], info['title'], info['date'])
         self.cu.execute(strr)
-        strr = "insert into source%d (source, parsedSource) values('%s', '%s')" % (self.siteID, source, parsed_source)
-        print strr
+        strr = "insert into source%d (source, parsedSource) values('%s', '%s')" % (self.siteID, "", parsed_source)
+        print '-'*200
+        #print strr
         self.cu.execute(strr)
+        print '-'*200
         self.cx.commit()
         
     def saveImg(self, info, source):

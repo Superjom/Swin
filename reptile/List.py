@@ -139,7 +139,7 @@ class Queue(Q.Queue):
         '''
         res = []
         urls = []
-        res.append(self.siteID]
+        res.append(self.siteID)
         res.append(urls)
         try:
             q = self.get_nowait()

@@ -119,7 +119,10 @@ class PicParser:
         print 'image open'
         imgData = StringIO(source)
         #the initial size
-        self.img = Image.open(imgData)
+        try:
+            self.img = Image.open(imgData)
+        except:
+            return False
     
     def getSize(self):
         return self.img.size
@@ -166,12 +169,18 @@ class Collector:
         显式刷新缓存内容
         '''
         self.html=html
+        self.html.replace('"',"'")
+        self.html.replace("'", "''")
         if not self.htmlparser.init(html):
             return False
         self.d = self.htmlparser.d
         self.d=pq(html)
         self.d('script').remove()
+        self.d('SCRIPT').remove()
         self.d('style').remove()
+        self.d('STYLE').remove()
+        print '-'*200
+        print self.html
         return True
         
     def clear_other_node(self):
